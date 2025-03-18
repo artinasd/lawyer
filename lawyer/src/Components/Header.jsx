@@ -1,0 +1,40 @@
+import courtStuff from '../assets/courtStuff.png'
+import {useEffect, useState} from "react";
+
+function Header() {
+    // const [isScrolling, setIsScrolling] = useState(false);
+    //
+    // function handleScroll() {
+    //     setIsScrolling(window.scrollY > 0)
+    // }
+
+    // useEffect(function () {
+    //     window.addEventListener('scroll', handleScroll, { passive: true });
+    //
+    //     return function cleanup() {
+    //         window.removeEventListener('scroll', handleScroll);
+    //     };
+    // }, []);
+
+    return (
+        <div className='w-full flex flex-row items-center justify-end h-[450px] overflow-hidden bg-[#3C3A86]'>
+            <img className='mx-auto  mt-60 opacity-50' src={courtStuff} />
+
+            <div className='absolute left-1/2 transform -translate-x-1/2 flex flex-row space-x-36'>
+                <p className='fade-in text-white max-w-[450px] text-lg text-right'>
+                    با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی، به شما کمک می‌کنیم تا به بهترین نتیجه ممکن در پرونده‌های حقوقی خود دست یابید<br/>
+    تلاش ما بر ارائه مشاوره‌های جامع و به‌روز، همراه با ارائه راهکارهای حقوقی متناسب با هر پرونده است تا با دقت و شفافیت کامل، به بررسی و تحلیل مسائل حقوقی شما پرداخته و بهترین راه‌حل‌های ممکن را ارائه دهیم                </p>
+                <h2 className='text-[64px] font-bold text-white w-[852px]'>
+                    وکالت حرفه‌ای برای<br/><span className='text-[#FFCA0C]'>دفاع از حقوق شما</span>
+                </h2>
+            </div>
+
+            <div className='absolute z-40 top-[420px] left-1/2 transform -translate-x-1/2 space-x-4'>
+                <button className='bg-[#4a48a3] px-4 py-3 text-white rounded'>خدمات حقوقی</button>
+                <button className='bg-[#FFCA0C] px-4 py-3 rounded'>مشاوره رایگان</button>
+            </div>
+        </div>
+    )
+}
+
+export default Header;

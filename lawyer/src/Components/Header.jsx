@@ -1,24 +1,10 @@
 import courtStuff from '../assets/courtStuff.png'
-import {useEffect, useState} from "react";
 
 function Header() {
-    // const [isScrolling, setIsScrolling] = useState(false);
-    //
-    // function handleScroll() {
-    //     setIsScrolling(window.scrollY > 0)
-    // }
-
-    // useEffect(function () {
-    //     window.addEventListener('scroll', handleScroll, { passive: true });
-    //
-    //     return function cleanup() {
-    //         window.removeEventListener('scroll', handleScroll);
-    //     };
-    // }, []);
 
     return (
-        <div className='w-full flex flex-row items-center justify-end h-[450px] overflow-hidden bg-[#3C3A86]'>
-            <img className='mx-auto  mt-60 opacity-50' src={courtStuff} />
+        <div className='w-full flex flex-row items-center justify-end h-[510px] overflow-hidden bg-[#3C3A86]'>
+            <img className='mx-auto scale-90 mt-[200px] opacity-20' src={courtStuff} />
 
             <div className='absolute left-1/2 transform -translate-x-1/2 flex flex-row space-x-36'>
                 <p className='fade-in text-white max-w-[450px] text-lg text-right'>

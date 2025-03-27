@@ -7,7 +7,7 @@ import bookIcon from '../assets/bookIcon.png'
 function AboutPage() {
 
     return (
-        <div className='grid grid-cols-2 mt-10'>
+        <div className='grid grid-cols-2 py-14'>
             <div className='relative col-span-1 order-2'>
                 <div className='absolute top-[16px] mx-auto border-2 rounded-lg right-[32px] h-[380px] w-[570px] border-[#4038C9]' />
                 <img className='z-50 scale-[85%] mx-auto rounded-xl' src={lawyerHand} />
@@ -16,7 +16,7 @@ function AboutPage() {
             <div className='col-span-1 order-1 text-right pl-16 mt-8'>
                 <h2 className='text-4xl font-bold'>درباره <span className='text-[#4038C9]'>من</span></h2>
 
-                <p className='text-gray-700 mt-6'>
+                <p className='text-gray-700 mt-6 rtl'>
                     من محمد حقوقی، وکیل پایه یک دادگستری با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی هستم. تخصص من در دعاوی مدنی، کیفری، خانواده و قراردادهای تجاری است.
                     <br/>
                     <br/>

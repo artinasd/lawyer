@@ -2,15 +2,34 @@ import NavigationBar from "./Permanent Components/NavigationBar.jsx";
 import Header from "./Header.jsx";
 import AboutPage from "./AboutPage.jsx";
 import Services from "./Services.jsx";
+import Comments from "./Comments.jsx";
+import ContactUs from "./ContactUs.jsx";
+import Footer from "./Footer.jsx";
+import {useRef} from "react";
 
 function Homepage() {
+    const homeRef = useRef(null);
+    const aboutRef = useRef(null);
+    const serviceRef = useRef(null);
+    const commentRef = useRef(null);
+    const contactRef = useRef(null);
+
     return (
-        <>
-            <NavigationBar />
-            <Header />
-            <AboutPage />
-            <Services />
-        </>
+        <div className='relative'>
+            <NavigationBar
+                scrollToSection={section => {
+                    section.current.scrollIntoView({behavior: "smooth"});
+                }}
+                sections={{homeRef, aboutRef, serviceRef, commentRef, contactRef}}
+            />
+
+            <div ref={homeRef}><Header /></div>
+            <div ref={aboutRef}><AboutPage /></div>
+            <div ref={serviceRef}><Services /></div>
+            <div ref={commentRef}><Comments /></div>
+            <div ref={contactRef}><ContactUs /></div>
+            <div><Footer /></div>
+        </div>
     )
 }
 

@@ -5,6 +5,10 @@
     --font-sans: 'Vazirmatn', sans-serif;
 }
 
+.rtl {
+    direction: rtl;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

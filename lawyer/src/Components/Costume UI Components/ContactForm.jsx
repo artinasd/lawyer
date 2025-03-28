@@ -20,13 +20,13 @@ function ContactForm() {
             <br/>
             <h3 className='font-medium text-gray-700 mb-2 rtl'>پیام</h3>
             <textarea
-                className='w-full placeholder:text-sm border border-gray-300 rounded-md px-2 py-2 rtl h-28 focus:outline-blue-600 transform duration-200'
+                className='resize-none w-full placeholder:text-sm border border-gray-300 rounded-md px-2 py-2 rtl h-28 focus:outline-blue-600 transform duration-200'
                 placeholder='متن پیام خود را وارد نمایید'
             />
 
             <br/>
             <br/>
-            <button className='bg-[#4038C9] w-full text-white p-2 rounded-md'>ارسال پیام</button>
+            <button className='bg-[#4038C9] w-full text-white p-2 rounded-md hover:bg-indigo-800 transition'>ارسال پیام</button>
         </div>
     )
 }

@@ -22,27 +22,50 @@ function NavigationBar(props) {
             <div className='mr-auto'>
                 <ul className='flex flex-row space-x-6 items-center mr-auto'>
                     <li>
-                        <button className='bg-[#4038C9] rounded-lg text-white px-4 py-2'>مشاوره رایگان</button>
+                        <button
+                            className='bg-indigo-700 rounded-lg text-white px-4 py-2 hover:bg-indigo-800 transition'>
+                            مشاوره رایگان
+                        </button>
                     </li>
 
                     <li>
-                        <button onClick={() => props.scrollToSection(props.sections.contactRef)}>تماس با من</button>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => props.scrollToSection(props.sections.contactRef)}>
+                            تماس با من
+                        </button>
                     </li>
 
                     <li>
-                        <button onClick={() => props.scrollToSection(props.sections.commentRef)}>نظرات موکلین</button>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => props.scrollToSection(props.sections.commentRef)}>
+                            نظرات موکلین
+                        </button>
                     </li>
 
                     <li>
-                        <button onClick={() => props.scrollToSection(props.sections.serviceRef)}>خدمات</button>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => props.scrollToSection(props.sections.serviceRef)}>
+                            خدمات
+                        </button>
                     </li>
 
                     <li>
-                        <button onClick={() => props.scrollToSection(props.sections.aboutRef)}>درباره من</button>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => props.scrollToSection(props.sections.aboutRef)}>
+                            درباره من
+                        </button>
                     </li>
 
                     <li>
-                        <button onClick={() => props.scrollToSection(props.sections.homeRef)}>خانه</button>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => props.scrollToSection(props.sections.homeRef)}>
+                            خانه
+                        </button>
                     </li>
                 </ul>
             </div>

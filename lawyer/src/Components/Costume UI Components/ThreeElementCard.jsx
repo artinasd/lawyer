@@ -1,7 +1,7 @@
 function ThreeElementCard(props) {
 
     return (
-        <div className='bg-white p-6 shadow-md rounded-lg'>
+        <div className='bg-white p-6 shadow-md rounded-lg hover:shadow-lg transition'>
             <div className='bg-[#DEE7FF] rounded-full w-12 h-12 flex items-center justify-center'>
                 {props.children}
             </div>

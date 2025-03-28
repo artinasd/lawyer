@@ -29,7 +29,7 @@ function AboutPage() {
                     <TwoElementCard icon={medalIcon} text="۱۵+ سال تجربه" />
                 </div>
 
-                <button className='bg-[#4038C9] px-4 py-3 text-white rounded mt-4'>
+                <button className='bg-[#4038C9] px-4 py-3 text-white rounded-md hover:bg-indigo-800 transition mt-4'>
                     تماس با من
                 </button>
             </div>

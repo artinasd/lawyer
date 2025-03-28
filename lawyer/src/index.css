@@ -21,3 +21,9 @@
 .fade-in {
     animation: fadeIn 3s ease-in-out forwards;
 }
+
+@layer base {
+    button {
+        @apply cursor-pointer;
+    }
+}

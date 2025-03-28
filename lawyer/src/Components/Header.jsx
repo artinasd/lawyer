@@ -16,8 +16,8 @@ function Header() {
             </div>
 
             <div className='absolute z-40 top-[420px] left-1/2 transform -translate-x-1/2 space-x-4'>
-                <button className='bg-[#4a48a3] px-4 py-3 text-white rounded'>خدمات حقوقی</button>
-                <button className='bg-[#FFCA0C] px-4 py-3 rounded'>مشاوره رایگان</button>
+                <button className='bg-white/25 transition hover:bg-white/35 px-4 py-3 text-white rounded-md'>خدمات حقوقی</button>
+                <button className='bg-yellow-500 transition hover:bg-yellow-600 px-4 py-3 rounded-md'>مشاوره رایگان</button>
             </div>
         </div>
     )

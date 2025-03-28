@@ -9,9 +9,9 @@ function Footer() {
             <h2 className='text-white text-lg font-bold mb-2'>محمد حقوقی</h2>
 
             <div className='flex flex-row items-center gap-6'>
-                <LocalPhoneOutlinedIcon style={{color: '#6F82E3'}} />
-                <EmailOutlinedIcon style={{color: '#6F82E3'}} />
-                <LanguageOutlinedIcon style={{color: '#6F82E3'}} />
+                <button><LocalPhoneOutlinedIcon style={{color: '#6F82E3'}} /></button>
+                <button><EmailOutlinedIcon style={{color: '#6F82E3'}} /></button>
+                <button><LanguageOutlinedIcon style={{color: '#6F82E3'}} /></button>
             </div>
 
             <hr className='w-[90%] my-4 border border-gray-800' />

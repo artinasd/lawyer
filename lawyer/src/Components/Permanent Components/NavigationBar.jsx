@@ -29,6 +29,12 @@ function NavigationBar(props) {
                     </li>
 
                     <li>
+                        <button className='hover:text-indigo-700 font-medium text-gray-900'>
+                            مقالات
+                        </button>
+                    </li>
+
+                    <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
                             onClick={() => props.scrollToSection(props.sections.contactRef)}>

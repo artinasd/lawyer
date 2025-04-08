@@ -14,7 +14,7 @@ function Services() {
             <br/>
             <br/>
 
-            <ul className='grid grid-cols-3 gap-6'>
+            <ul className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {ServicesData.map((each, index) => (
                     <li key={index}>
                         <ThreeElementCard title={each.title} description={each.description}>

@@ -1,4 +1,4 @@
-import courtStuff from '../assets/courtStuff.png'
+import courtStuff from '../../assets/courtStuff.png'
 
 function Header() {
 

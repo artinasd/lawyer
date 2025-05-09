@@ -1,8 +1,8 @@
-import lawyerHand from '../assets/lawyerHand.png'
-import TwoElementCard from "./Costume UI Components/TwoElementCard.jsx";
-import medalIcon from '../assets/medal.png'
-import caseIcon from '../assets/caseIcon.png'
-import bookIcon from '../assets/bookIcon.png'
+import lawyerHand from '../../assets/lawyerHand.png'
+import TwoElementCard from "../Costume UI Components/TwoElementCard.jsx";
+import medalIcon from '../../assets/medal.png'
+import caseIcon from '../../assets/caseIcon.png'
+import bookIcon from '../../assets/bookIcon.png'
 
 function AboutPage() {
 

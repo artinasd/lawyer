@@ -1,10 +1,10 @@
 import NavigationBar from "./Permanent Components/NavigationBar.jsx";
-import Header from "./Header.jsx";
-import AboutPage from "./AboutPage.jsx";
-import Services from "./Services.jsx";
-import Comments from "./Comments.jsx";
-import ContactUs from "./ContactUs.jsx";
-import Footer from "./Footer.jsx";
+import Header from "./SPA Components/Header.jsx";
+import AboutPage from "./SPA Components/AboutPage.jsx";
+import Services from "./SPA Components/Services.jsx";
+import Comments from "./SPA Components/Comments.jsx";
+import ContactUs from "./SPA Components/ContactUs.jsx";
+import Footer from "./SPA Components/Footer.jsx";
 import {useRef} from "react";
 
 function Homepage() {

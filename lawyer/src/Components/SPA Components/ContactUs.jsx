@@ -1,5 +1,5 @@
-import ContactForm from "./Costume UI Components/ContactForm.jsx";
-import ContactInfo from "./Costume UI Components/ContactInfo.jsx";
+import ContactForm from "../Costume UI Components/ContactForm.jsx";
+import ContactInfo from "../Costume UI Components/ContactInfo.jsx";
 import MapView from "./MapView.jsx";
 
 function ContactUs() {

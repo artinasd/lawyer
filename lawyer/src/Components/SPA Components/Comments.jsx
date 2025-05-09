@@ -1,6 +1,6 @@
-import FourElementCard from "./Costume UI Components/FourElementCard.jsx";
+import FourElementCard from "../Costume UI Components/FourElementCard.jsx";
 import {useEffect, useState} from "react";
-import {CommentsData} from "./HardCodedData/CommentsData.js";
+import {CommentsData} from "../HardCodedData/CommentsData.js";
 
 function Comments() {
     const [menuState, setMenuState] = useState(0)

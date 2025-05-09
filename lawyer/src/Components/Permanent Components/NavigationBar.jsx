@@ -1,8 +1,10 @@
 import courtIcon from '../../assets/courtIcon.png'
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 function NavigationBar(props) {
     const [isScrolling, setIsScrolling] = useState(false);
+    const navigate = useNavigate();
 
     function handleScroll() {
         setIsScrolling(window.scrollY > 0)
@@ -18,7 +20,7 @@ function NavigationBar(props) {
 
     return (
         <div className={`transform duration-300 fixed w-full top-0 z-50 max-w-screen h-16 flex flex-row py-3 px-20
-        ${isScrolling ? 'bg-white drop-shadow-lg' : 'bg-transparent'}`}>
+        ${(isScrolling || props.fixed) ? 'bg-white drop-shadow-lg' : 'bg-transparent'}`}>
             <div className='mr-auto'>
                 <ul className='flex flex-row space-x-6 items-center mr-auto'>
                     <li>
@@ -29,7 +31,9 @@ function NavigationBar(props) {
                     </li>
 
                     <li>
-                        <button className='hover:text-indigo-700 font-medium text-gray-900'>
+                        <button
+                            className='hover:text-indigo-700 font-medium text-gray-900'
+                            onClick={() => navigate('blog')}>
                             مقالات
                         </button>
                     </li>

@@ -1,6 +1,6 @@
-import ThreeElementCard from "./Costume UI Components/ThreeElementCard.jsx";
-import {ServicesData} from "./HardCodedData/ServicesData.js";
-import {ServicesIcons} from "./HardCodedData/ServicesIcons.jsx";
+import ThreeElementCard from "../Costume UI Components/ThreeElementCard.jsx";
+import {ServicesData} from "../HardCodedData/ServicesData.js";
+import {ServicesIcons} from "../HardCodedData/ServicesIcons.jsx";
 
 function Services() {
 

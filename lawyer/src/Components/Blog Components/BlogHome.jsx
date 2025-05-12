@@ -30,7 +30,7 @@ function BlogHome() {
                     <ul className='grid grid-cols-3 gap-6 px-30 mt-30'>
                         {posts.slice(0, !isExtended ? 3 : posts.length).map((post, index) => (
                             <li key={index}>
-                                <BlogPostCard title={post.title} description={post.text} pic={post.image} />
+                                <BlogPostCard title={post.title} description={post.text} pic={post.image} id={post.id} />
                             </li>
                         ))}
                     </ul>

@@ -33,7 +33,7 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => navigate('blog')}>
+                            onClick={() => navigate('/blog')}>
                             مقالات
                         </button>
                     </li>
@@ -41,7 +41,10 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => props.scrollToSection(props.sections.contactRef)}>
+                            onClick={() => {
+                                !props.fixed ? (props.scrollToSection(props.sections.contactRef)) :
+                                navigate('/')
+                            }}>
                             تماس با من
                         </button>
                     </li>
@@ -49,7 +52,10 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => props.scrollToSection(props.sections.commentRef)}>
+                            onClick={() => {
+                                !props.fixed ? (props.scrollToSection(props.sections.commentRef)) :
+                                    navigate('/')
+                            }}>
                             نظرات موکلین
                         </button>
                     </li>
@@ -57,7 +63,10 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => props.scrollToSection(props.sections.serviceRef)}>
+                            onClick={() => {
+                                !props.fixed ? (props.scrollToSection(props.sections.serviceRef)) :
+                                    navigate('/')
+                            }}>
                             خدمات
                         </button>
                     </li>
@@ -65,7 +74,10 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => props.scrollToSection(props.sections.aboutRef)}>
+                            onClick={() => {
+                                !props.fixed ? (props.scrollToSection(props.sections.aboutRef)) :
+                                    navigate('/')
+                            }}>
                             درباره من
                         </button>
                     </li>
@@ -73,7 +85,10 @@ function NavigationBar(props) {
                     <li>
                         <button
                             className='hover:text-indigo-700 font-medium text-gray-900'
-                            onClick={() => props.scrollToSection(props.sections.homeRef)}>
+                            onClick={() => {
+                                !props.fixed ? (props.scrollToSection(props.sections.homeRef)) :
+                                    navigate('/')
+                            }}>
                             خانه
                         </button>
                     </li>

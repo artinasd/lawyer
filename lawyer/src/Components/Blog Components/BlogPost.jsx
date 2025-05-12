@@ -3,17 +3,21 @@ import supabase from "../../supabase.js";
 import {useEffect, useState} from "react";
 import lawyerPic from '../../assets/lawyer.jpg'
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import {useParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 function BlogPost() {
     const [post, setPost] = useState(null);
     const [restOfPosts, setRestOfPosts] = useState(null);
+    const {postId} = useParams()
+    const navigate = useNavigate()
 
     useEffect(() => {
         async function fetchPost() {
             let { data: posts, error } = await supabase
                 .from('posts')
                 .select('*')
-                .eq('id', 1)
+                .eq('id', postId)
                 .single()
             setPost(posts)
         }
@@ -39,41 +43,70 @@ function BlogPost() {
             {post && restOfPosts ? (
                 <div className='h-max max-w-screen mt-16 grid grid-cols-3 gap-6 rtl px-36'>
 
-                    <div className='col-span-2 bg-white p-2 my-20 shadow-md'>
-                        <div className='relative h-[500px] overflow-hidden'>
-                            <img className='object-center w-full h-full' src={post.image} />
-                            <div className='absolute bottom-0 bg-black/50 backdrop-blur-sm w-full text-center text-white drop-shadow font-medium text-2xl py-3'>
-                                <h2>{post.title}</h2>
+                    <div className='col-span-2 bg-white shadow-md  transition-all duration-300 my-20 overflow-hidden'>
+                        <div className='relative h-[500px] overflow-hidden group'>
+                            <img
+                                className='object-cover w-full h-full group-hover:scale-105 transition-transform duration-700'
+                                src={post.image}
+                                alt={post.title}
+                            />
+                            <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent'></div>
+                            <div className='absolute bottom-0 w-full p-6'>
+                                <h2 className='text-white text-3xl font-bold mb-2 drop-shadow-lg'>{post.title}</h2>
+                                <div className='h-1 w-20 bg-indigo-500 rounded-full'></div>
                             </div>
                         </div>
 
-                        <p className='p-6'>{post.text}</p>
+                        <div className='p-8'>
+                            <p className='text-gray-700 leading-loose text-lg'>{post.text}</p>
+                        </div>
                     </div>
 
                     <div className='col-span-1 my-20 space-y-6'>
-                        <div className='bg-white p-2 shadow-md'>
-                            <div className='flex flex-row items-end space-x-6 justify-start'>
-                                <img className='w-20 rounded-md border-[2px] border-indigo-600' src={lawyerPic} />
-                                <button>
-                                    <div className='flex flex-row items-center justify-center space-x-1'>
-                                        <QuestionAnswerOutlinedIcon style={{color: '#4f46e5', fontSize: '32px'}} />
-                                        <p className='text-indigo-600 text-lg'>ارتباط با من</p>
-                                    </div>
-                                </button>
+                        <div className='bg-white p-6 shadow-md  transition-all duration-300 max-w-md'>
+                            <div className='flex flex-col items-center text-center mb-4'>
+                                <img
+                                    className='w-28 h-28 rounded-full border-4 border-indigo-100 object-cover mb-4 hover:scale-105 transition-transform duration-300'
+                                    src={lawyerPic}
+                                    alt="Lawyer profile"
+                                />
+                                <h2 className='font-bold text-2xl text-gray-900 mb-2'>محمد حقوقی</h2>
+                                <p className='text-indigo-600 font-medium'>کارشناس حقوقی</p>
                             </div>
-                            <h2 className='font-medium text-xl mt-5'>محمد حقوقی | کارشناس حقوقی</h2>
-                            <p className='mt-5 font-light'>وکیل پایه یک دادگستری با +12 سال تجربه موفق در انواع پرونده های حقوقی</p>
+
+                            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+                                <p className='text-gray-700 leading-relaxed text-base'>وکیل پایه یک دادگستری با +12 سال تجربه موفق در انواع پرونده های حقوقی</p>
+                            </div>
+
+                            <button className='w-full hover:scale-[1.02] transition-transform duration-300'>
+                                <div className='flex items-center justify-center space-x-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-300'>
+                                    <QuestionAnswerOutlinedIcon style={{fontSize: '24px'}} />
+                                    <p className='text-lg font-medium'>ارتباط با من</p>
+                                </div>
+                            </button>
                         </div>
 
-                        <div className='bg-white p-2 shadow-md'>
-                            <h2 className='font-bold text-xl mt-2'>سایر مقالات</h2>
-                            <br />
-                            <ul>
+                        <div className='bg-white p-6 shadow-md transition-all duration-300'>
+                            <h2 className='font-bold text-2xl text-gray-900 mb-6 pb-2 border-b border-gray-100'>سایر مقالات</h2>
+
+                            <ul className='space-y-4'>
                                 {restOfPosts.map((post, index) => (
-                                    <li key={index}>
-                                        <div className='flex flex-row items-center justify-start my-4 space-x-3'>
-                                            <img className='w-16 h-10 overflow-y-clip' src={post.image} />
-                                            <h2 className='line-clamp-1'>{post.title.slice(0, 30) + '...'}</h2>
+                                    <li key={index} className='group hover:bg-gray-50 rounded-lg transition-colors duration-200'>
+                                        <div className='flex items-center space-x-4 p-2'
+                                             onClick={() => {
+                                                 navigate(`/blog/${post.id}`)
+                                                 window.location.reload()
+                                             }}>
+                                            <div className='relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0'>
+                                                <img
+                                                    className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300'
+                                                    src={post.image}
+                                                    alt={post.title}
+                                                />
+                                            </div>
+                                            <h3 className='text-gray-800 font-medium line-clamp-2 group-hover:text-indigo-600 transition-colors duration-200'>
+                                                {post.title}
+                                            </h3>
                                         </div>
                                     </li>
                                 ))}

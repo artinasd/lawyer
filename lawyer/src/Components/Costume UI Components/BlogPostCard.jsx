@@ -1,8 +1,7 @@
-function BlogPostCard(props) {
+import {useNavigate} from "react-router-dom";
 
-    function textSplitter(text, limit) {
-        return text.slice(0, limit) + '...'
-    }
+function BlogPostCard(props) {
+    const navigate = useNavigate();
 
     return (
         <div className='bg-white rounded-md w-fit h-fit col-span-1 shadow-md text-right hover:scale-[101%] transition'>
@@ -10,7 +9,7 @@ function BlogPostCard(props) {
             <div className='p-4'>
                 <br />
                 <h2 className='line-clamp-1 font-bold text-lg rtl'>
-                    {textSplitter(props.title, 70)}
+                    {props.title.slice(0, 70)}
                 </h2>
                 <br />
                 <p className='line-clamp-4 relative'>
@@ -19,6 +18,7 @@ function BlogPostCard(props) {
                 </p>
                 <br />
                 <button
+                    onClick={() => navigate(`${props.id}`)}
                     className='border-2 border-indigo-500 px-2 py-1 rounded-md font-bold
                     text-sm w-full hover:bg-indigo-600 hover:border-indigo-600 hover:text-white transition text-gray-700'>
                     مشاهده مطلب

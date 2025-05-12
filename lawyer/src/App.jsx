@@ -5,9 +5,9 @@ import BlogPost from "./Components/Blog Components/BlogPost.jsx";
 
 function App() {
     const router = createBrowserRouter([
-        { path: '/', element: <Homepage /> },
+        {path: '/', element: <Homepage />},
         {path: '/blog', element: <BlogLanding/>},
-        {path: '/blog/:id', element: <BlogPost/>},
+        {path: '/blog/:postId', element: <BlogPost/>},
     ]);
 
     return (

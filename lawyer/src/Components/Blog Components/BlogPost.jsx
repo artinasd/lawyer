@@ -92,7 +92,7 @@ function BlogPost() {
                             <ul className='space-y-4'>
                                 {restOfPosts.map((post, index) => (
                                     <li key={index} className='group hover:bg-gray-50 rounded-lg transition-colors duration-200'>
-                                        <div className='flex items-center space-x-4 p-2'
+                                        <button className='flex items-center space-x-4 p-2 text-right'
                                              onClick={() => {
                                                  navigate(`/blog/${post.id}`)
                                                  window.location.reload()
@@ -107,7 +107,7 @@ function BlogPost() {
                                             <h3 className='text-gray-800 font-medium line-clamp-2 group-hover:text-indigo-600 transition-colors duration-200'>
                                                 {post.title}
                                             </h3>
-                                        </div>
+                                        </button>
                                     </li>
                                 ))}
                             </ul>

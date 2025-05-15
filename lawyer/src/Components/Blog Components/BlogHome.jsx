@@ -7,9 +7,7 @@ import loadingGif from '../../assets/loadingGif.gif'
 function BlogHome() {
     const [posts, setPosts] = useState(null);
     const [isExtended, setIsExtended] = useState(null);
-    function handleExtend() {
-        setIsExtended(true);
-    }
+    const [pageNumber, setPageNumber] = useState(0);
 
     useEffect(() => {
         async function fetchPosts() {
@@ -21,6 +19,11 @@ function BlogHome() {
         fetchPosts()
     }, []);
 
+    function handleExtend() {
+        setIsExtended(true);
+        setPageNumber(1)
+    }
+
     return (
         <div className=''>
             <BlogHeader />
@@ -28,7 +31,7 @@ function BlogHome() {
             {posts ? (
                 <div className='flex items-center justify-center'>
                     <ul className='grid grid-cols-3 gap-6 px-30 mt-30'>
-                        {posts.slice(0, !isExtended ? 3 : posts.length).map((post, index) => (
+                        {posts.slice(posts, !isExtended ? 3 : posts[posts.length/pageNumber]).map((post, index) => (
                             <li key={index}>
                                 <BlogPostCard title={post.title} description={post.text} pic={post.image} id={post.id} />
                             </li>
@@ -39,13 +42,37 @@ function BlogHome() {
                 <img className='mx-auto mt-30 w-20' src={loadingGif} />
             )}
 
-            {!isExtended ?
+            {!isExtended && posts ?
                 <div className='border border-black p-3 mx-auto mt-20 w-fit hover:bg-white transition hover:scale-[101%]'>
                     <button onClick={handleExtend}>
                         <p>مشاهده بیشتر</p>
                     </button>
                 </div> :
 
+                <></>
+            }
+
+            {/* PAGINATION */}
+            {isExtended && posts ? (
+                <div className='flex items-center justify-center mt-30'>
+                    <ul className='flex flex-row items-center space-x-2'>
+                        {Array.from({length: Math.floor(posts.length/6)}).map((_, index) => (
+                            <li key={index}>
+                                <button
+                                    onClick={() => {
+                                        setPageNumber(index + 1)
+                                    }}
+                                    className={`border p-2 w-10 h-10 rounded-md
+                                            hover:bg-indigo-600 hover:text-white
+                                            transition duration-500
+                                            ${index + 1 === pageNumber ? 'bg-indigo-600 text-white' : 'bg-white'}`}>
+                                    {index + 1}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) :
                 <></>
             }
         </div>

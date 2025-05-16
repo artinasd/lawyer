@@ -89,7 +89,7 @@ function BlogPost() {
                         <div className='bg-white p-6 shadow-md transition-all duration-300'>
                             <h2 className='font-bold text-2xl text-gray-900 mb-6 pb-2 border-b border-gray-100'>سایر مقالات</h2>
 
-                            <ul className='space-y-4'>
+                            <ul className='space-y-4 h-72 overflow-y-scroll'>
                                 {restOfPosts.map((post, index) => (
                                     <li key={index} className='group hover:bg-gray-50 rounded-lg transition-colors duration-200'>
                                         <button className='flex items-center space-x-4 p-2 text-right'

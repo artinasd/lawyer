@@ -8,6 +8,7 @@ function BlogHome() {
     const [posts, setPosts] = useState(null);
     const [isExtended, setIsExtended] = useState(null);
     const [pageNumber, setPageNumber] = useState(0);
+    const [postPointer, setPostPointer] = useState(0)
 
     useEffect(() => {
         async function fetchPosts() {
@@ -31,7 +32,7 @@ function BlogHome() {
             {posts ? (
                 <div className='flex items-center justify-center'>
                     <ul className='grid grid-cols-3 gap-6 px-30 mt-30'>
-                        {posts.slice(posts, !isExtended ? 3 : posts[posts.length/pageNumber]).map((post, index) => (
+                        {posts.slice(postPointer, !isExtended ? 3 : postPointer+6).map((post, index) => (
                             <li key={index}>
                                 <BlogPostCard title={post.title} description={post.text} pic={post.image} id={post.id} />
                             </li>
@@ -61,6 +62,7 @@ function BlogHome() {
                                 <button
                                     onClick={() => {
                                         setPageNumber(index + 1)
+                                        setPostPointer(index * 6)
                                     }}
                                     className={`border p-2 w-10 h-10 rounded-md
                                             hover:bg-indigo-600 hover:text-white

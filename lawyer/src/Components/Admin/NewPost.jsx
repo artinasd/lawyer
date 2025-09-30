@@ -4,6 +4,15 @@ import ImageInput from "../Costume UI Components/ImageInput.jsx";
 
 function NewPost() {
 
+    async function handleAddPost() {
+        const { data, error } = await supabase
+            .from('posts')
+            .insert([
+                { some_column: 'someValue', other_column: 'otherValue' },
+            ])
+            .select()
+    }
+
     return (
         <div className='bg-gray-50 max-w-screen min-h-screen flex rtl py-20'>
             <div className='bg-white rounded-lg p-6 my-auto mx-auto w-[40%] h-fit'>
@@ -23,7 +32,7 @@ function NewPost() {
                 </div>
                 <br/>
 
-                <button className='rounded-md bg-indigo-600 text-white p-2'>ثبت</button>
+                <button onClick={handleAddPost} className='rounded-md bg-indigo-600 text-white p-2'>ثبت</button>
 
             </div>
         </div>

@@ -1,36 +1,20 @@
-import NavigationBar from "./Permanent Components/NavigationBar.jsx";
 import Header from "./SPA Components/Header.jsx";
 import AboutPage from "./SPA Components/AboutPage.jsx";
 import Services from "./SPA Components/Services.jsx";
 import Comments from "./SPA Components/Comments.jsx";
 import ContactUs from "./SPA Components/ContactUs.jsx";
-import Footer from "./SPA Components/Footer.jsx";
-import {useRef} from "react";
 
 function Homepage() {
-    const homeRef = useRef(null);
-    const aboutRef = useRef(null);
-    const serviceRef = useRef(null);
-    const commentRef = useRef(null);
-    const contactRef = useRef(null);
-
     return (
         <div className='relative'>
-            <NavigationBar
-                scrollToSection={section => {
-                    section.current.scrollIntoView({behavior: "smooth"});
-                }}
-                sections={{homeRef, aboutRef, serviceRef, commentRef, contactRef}}
-            />
-
-            <div ref={homeRef}><Header /></div>
-            <div ref={aboutRef}><AboutPage /></div>
-            <div ref={serviceRef}><Services /></div>
-            <div ref={commentRef}><Comments /></div>
-            <div ref={contactRef}><ContactUs /></div>
-            <div><Footer /></div>
+            {/* Added IDs so the NavigationBar scroll links work smoothly */}
+            <div id="home"><Header /></div>
+            <div id="about" className="scroll-mt-20"><AboutPage /></div>
+            <div id="services" className="scroll-mt-20"><Services /></div>
+            <div id="comments" className="scroll-mt-20"><Comments /></div>
+            <div id="contact" className="scroll-mt-20"><ContactUs /></div>
         </div>
     )
 }
 
-export default Homepage
+export default Homepage;

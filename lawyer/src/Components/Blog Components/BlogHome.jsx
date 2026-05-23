@@ -1,84 +1,98 @@
+import React, { useState, useEffect } from 'react';
 import BlogHeader from "./BlogHeader.jsx";
 import BlogPostCard from "../Costume UI Components/BlogPostCard.jsx";
-import {useEffect, useState} from "react";
-import supabase from '../../supabase.js'
-import loadingGif from '../../assets/loadingGif.gif'
+import loadingGif from '../../assets/loadingGif.gif';
+import { tempData } from "../tempData.js";
 
 function BlogHome() {
     const [posts, setPosts] = useState(null);
-    const [isExtended, setIsExtended] = useState(null);
-    const [pageNumber, setPageNumber] = useState(0);
-    const [postPointer, setPostPointer] = useState(0)
+    const [isExtended, setIsExtended] = useState(false);
+    const [pageNumber, setPageNumber] = useState(1);
+    const postsPerPage = 6;
 
     useEffect(() => {
-        async function fetchPosts() {
-            let { data: posts, error } = await supabase
-                .from('posts')
-                .select('*')
-            setPosts(posts)
-        }
-        fetchPosts()
+        // Simulate fetching from backend using tempData
+        setTimeout(() => {
+            // Add unique IDs to tempData for routing
+            const postsWithIds = tempData.map((post, index) => ({
+                ...post,
+                id: index + 1
+            }));
+            setPosts(postsWithIds);
+        }, 500);
     }, []);
 
     function handleExtend() {
         setIsExtended(true);
-        setPageNumber(1)
     }
 
+    // Calculate pagination
+    const indexOfLastPost = pageNumber * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const currentPosts = posts?.slice(
+        isExtended ? indexOfFirstPost : 0,
+        isExtended ? indexOfLastPost : 3
+    );
+
+    const totalPages = posts ? Math.ceil(posts.length / postsPerPage) : 0;
+
     return (
-        <div className=''>
+        <div className='bg-[#F9FAFB] min-h-screen'>
             <BlogHeader />
 
-            {posts ? (
-                <div className='flex items-center justify-center'>
-                    <ul className='grid grid-cols-3 gap-6 px-30 mt-30'>
-                        {posts.slice(postPointer, !isExtended ? 3 : postPointer+6).map((post, index) => (
-                            <li key={index}>
-                                <BlogPostCard title={post.title} description={post.text} pic={post.image} id={post.id} />
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ): (
-                <img className='mx-auto mt-30 w-20' src={loadingGif} />
-            )}
+            <div className="max-w-7xl mx-auto px-6 lg:px-8 pb-24">
+                {posts ? (
+                    <>
+                        {/* Blog Grid */}
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20 rtl'>
+                            {currentPosts.map((post) => (
+                                <BlogPostCard
+                                    key={post.id}
+                                    id={post.id}
+                                    title={post.title}
+                                    description={post.body}
+                                    pic={post.image}
+                                />
+                            ))}
+                        </div>
 
-            {!isExtended && posts ?
-                <div className='border border-black p-3 mx-auto mt-20 w-fit hover:bg-white transition hover:scale-[101%]'>
-                    <button onClick={handleExtend}>
-                        <p>مشاهده بیشتر</p>
-                    </button>
-                </div> :
-
-                <></>
-            }
-
-            {/* PAGINATION */}
-            {isExtended && posts ? (
-                <div className='flex items-center justify-center mt-30'>
-                    <ul className='flex flex-row items-center space-x-2'>
-                        {Array.from({length: Math.floor(posts.length/6)}).map((_, index) => (
-                            <li key={index}>
+                        {/* Load More Button */}
+                        {!isExtended && posts.length > 3 && (
+                            <div className='flex justify-center mt-16'>
                                 <button
-                                    onClick={() => {
-                                        setPageNumber(index + 1)
-                                        setPostPointer(index * 6)
-                                    }}
-                                    className={`border p-2 w-10 h-10 rounded-md
-                                            hover:bg-indigo-600 hover:text-white
-                                            transition duration-500
-                                            ${index + 1 === pageNumber ? 'bg-indigo-600 text-white' : 'bg-white'}`}>
-                                    {index + 1}
+                                    onClick={handleExtend}
+                                    className='bg-white border-2 border-gray-200 text-gray-700 px-8 py-3 rounded-full font-bold hover:border-[#4038C9] hover:text-[#4038C9] transition-colors shadow-sm'>
+                                    مشاهده مقالات بیشتر
                                 </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ) :
-                <></>
-            }
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {isExtended && totalPages > 1 && (
+                            <div className='flex justify-center items-center mt-16 gap-2' dir="ltr">
+                                {Array.from({length: totalPages}).map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setPageNumber(index + 1)}
+                                        className={`w-10 h-10 rounded-lg font-bold transition-colors duration-300
+                                            ${index + 1 === pageNumber
+                                            ? 'bg-[#4038C9] text-white shadow-md'
+                                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                        }`}>
+                                        {index + 1}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="flex justify-center items-center py-32">
+                        <img className='w-16 h-16' src={loadingGif} alt="Loading..." />
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }
 
-export default BlogHome
+export default BlogHome;

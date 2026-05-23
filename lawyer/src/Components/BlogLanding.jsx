@@ -6,7 +6,6 @@ function BlogLanding() {
 
     return (
         <div className='pb-30 bg-[#F9FAFB]'>
-            <NavigationBar fixed={true} />
             <BlogHome />
         </div>
     )

@@ -1,12 +1,18 @@
-function TextArea(props) {
+import React from 'react';
 
+export default function TextArea({ label, placeholder, value, onChange, name, rows = 5 }) {
     return (
-        <div className='rtl'>
-            <h3 className='font-medium text-gray-700 mb-2'>{props.label}</h3>
-            <textarea className='h-64 overflow-y-scroll focus:outline-blue-600 transform duration-200 w-full placeholder:text-sm border border-gray-300 rounded-md px-2 py-2'
-                   placeholder={props.placeholder} />
+        <div className="flex flex-col gap-2 w-full mb-4">
+            {label && <label className="text-right font-bold text-gray-700">{label}</label>}
+            <textarea
+                name={name}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                rows={rows}
+                className="border border-gray-300 rounded-md p-3 text-right focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-sm resize-y"
+                dir="rtl"
+            />
         </div>
-    )
+    );
 }
-
-export default TextArea;

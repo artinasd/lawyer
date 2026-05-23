@@ -1,124 +1,65 @@
-import NavigationBar from "../Permanent Components/NavigationBar.jsx";
-import supabase from "../../supabase.js";
-import {useEffect, useState} from "react";
-import lawyerPic from '../../assets/lawyer.jpg'
-import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
-import {useParams} from "react-router-dom";
-import {useNavigate} from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import loadingGif from '../../assets/loadingGif.gif'; // Ensure path is correct
 
-function BlogPost() {
+export default function BlogPost() {
+    const { postId } = useParams();
     const [post, setPost] = useState(null);
-    const [restOfPosts, setRestOfPosts] = useState(null);
-    const {postId} = useParams()
-    const navigate = useNavigate()
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchPost() {
-            let { data: posts, error } = await supabase
-                .from('posts')
-                .select('*')
-                .eq('id', postId)
-                .single()
-            setPost(posts)
-        }
-        fetchPost();
-    }, []);
+        // Scroll to top when post changes
+        window.scrollTo(0, 0);
+        setLoading(true);
 
-    useEffect(() => {
-        if (post) {
-            async function fetchAllPosts() {
-                let { data: posts, error } = await supabase
-                    .from('posts')
-                    .select('*')
-                setRestOfPosts(posts.filter(eachPost => eachPost.id !== post.id))
-            }
-            fetchAllPosts()
-        }
-    }, [post]);
+        // Mock backend fetch
+        setTimeout(() => {
+            setPost({
+                id: postId,
+                title: `عنوان تستی برای مقاله شماره ${postId}`,
+                content: `این یک متن تستی است که نشان می‌دهد روتینگ به درستی کار می‌کند. شما در حال مشاهده مقاله ${postId} هستید. وقتی روی مقالات دیگر در سایدبار کلیک کنید، صفحه رفرش نمی‌شود بلکه فقط این متن تغییر می‌کند.`,
+                date: '۱۴۰۲/۰۸/۱۵',
+                author: 'ارتین'
+            });
+            setLoading(false);
+        }, 600); // 600ms mock network delay
+
+    }, [postId]); // <--- CRITICAL FIX: React watches this variable to trigger re-renders
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <img src={loadingGif} alt="در حال بارگذاری..." className="w-16 h-16" />
+            </div>
+        );
+    }
 
     return (
-        <div className='bg-[#F9FAFB]'>
-            <NavigationBar fixed={true} />
-
-            {post && restOfPosts ? (
-                <div className='h-max max-w-screen mt-16 grid grid-cols-3 gap-6 rtl px-36'>
-
-                    <div className='col-span-2 bg-white shadow-md  transition-all duration-300 my-20 overflow-hidden'>
-                        <div className='relative h-[500px] overflow-hidden group'>
-                            <img
-                                className='object-cover w-full h-full group-hover:scale-105 transition-transform duration-700'
-                                src={post.image}
-                                alt={post.title}
-                            />
-                            <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent'></div>
-                            <div className='absolute bottom-0 w-full p-6'>
-                                <h2 className='text-white text-3xl font-bold mb-2 drop-shadow-lg'>{post.title}</h2>
-                                <div className='h-1 w-20 bg-indigo-500 rounded-full'></div>
-                            </div>
-                        </div>
-
-                        <div className='p-8'>
-                            <p className='text-gray-700 leading-loose text-lg'>{post.text}</p>
-                        </div>
-                    </div>
-
-                    <div className='col-span-1 my-20 space-y-6'>
-                        <div className='bg-white p-6 shadow-md  transition-all duration-300 max-w-md'>
-                            <div className='flex flex-col items-center text-center mb-4'>
-                                <img
-                                    className='w-28 h-28 rounded-full border-4 border-indigo-100 object-cover mb-4 hover:scale-105 transition-transform duration-300'
-                                    src={lawyerPic}
-                                    alt="Lawyer profile"
-                                />
-                                <h2 className='font-bold text-2xl text-gray-900 mb-2'>محمد حقوقی</h2>
-                                <p className='text-indigo-600 font-medium'>کارشناس حقوقی</p>
-                            </div>
-
-                            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-                                <p className='text-gray-700 leading-relaxed text-base'>وکیل پایه یک دادگستری با +12 سال تجربه موفق در انواع پرونده های حقوقی</p>
-                            </div>
-
-                            <button className='w-full hover:scale-[1.02] transition-transform duration-300'>
-                                <div className='flex items-center justify-center space-x-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-300'>
-                                    <QuestionAnswerOutlinedIcon style={{fontSize: '24px'}} />
-                                    <p className='text-lg font-medium'>ارتباط با من</p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <div className='bg-white p-6 shadow-md transition-all duration-300'>
-                            <h2 className='font-bold text-2xl text-gray-900 mb-6 pb-2 border-b border-gray-100'>سایر مقالات</h2>
-
-                            <ul className='space-y-4 h-72 overflow-y-scroll'>
-                                {restOfPosts.map((post, index) => (
-                                    <li key={index} className='group hover:bg-gray-50 rounded-lg transition-colors duration-200'>
-                                        <button className='flex items-center space-x-4 p-2 text-right'
-                                             onClick={() => {
-                                                 navigate(`/blog/${post.id}`)
-                                                 window.location.reload()
-                                             }}>
-                                            <div className='relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0'>
-                                                <img
-                                                    className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300'
-                                                    src={post.image}
-                                                    alt={post.title}
-                                                />
-                                            </div>
-                                            <h3 className='text-gray-800 font-medium line-clamp-2 group-hover:text-indigo-600 transition-colors duration-200'>
-                                                {post.title}
-                                            </h3>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
+        <div className="max-w-6xl mx-auto p-4 flex flex-col md:flex-row gap-8 mt-10" dir="rtl">
+            {/* Main Content */}
+            <main className="md:w-3/4 bg-white p-6 rounded-lg shadow-md">
+                <h1 className="text-4xl font-bold mb-4 text-[#D4AF37]">{post.title}</h1>
+                <div className="flex gap-4 text-gray-500 text-sm mb-8 border-b pb-4">
+                    <span>نویسنده: {post.author}</span>
+                    <span>تاریخ: {post.date}</span>
                 </div>
-            ) : (
-                <></> //LOADING GIF
-            )}
-        </div>
-    )
-}
+                <div className="text-gray-800 leading-loose text-lg">
+                    {post.content}
+                </div>
+            </main>
 
-export default BlogPost
+            {/* Sidebar / Other Posts */}
+            <aside className="md:w-1/4">
+                <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
+                    <h3 className="text-xl font-bold mb-4 border-b-2 border-[#D4AF37] pb-2">سایر مقالات</h3>
+                    <ul className="flex flex-col gap-3">
+                        {/* Mock sidebar links - clicking these will NOT reload the page anymore */}
+                        <li><Link to="/blog/1" className="text-blue-600 hover:text-blue-800 transition">مقاله حقوقی شماره ۱</Link></li>
+                        <li><Link to="/blog/2" className="text-blue-600 hover:text-blue-800 transition">قوانین جدید مالیات</Link></li>
+                        <li><Link to="/blog/3" className="text-blue-600 hover:text-blue-800 transition">راهنمای ثبت شرکت</Link></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    );
+}

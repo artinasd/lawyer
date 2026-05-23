@@ -1,3 +1,4 @@
+// lawyer/src/Components/Admin/AdminLogin.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputTag from "../Costume UI Components/InputTag.jsx";
@@ -7,13 +8,26 @@ function AdminLogin() {
     const [pass, setPass] = useState("");
     const navigate = useNavigate();
 
-    const handleLogin = () => {
-        // You define these values here:
-        if (user === "admin" && pass === "securePassword123") {
-            localStorage.setItem("isAdmin", "true");
-            navigate("/admin");
-        } else {
-            alert("نام کاربری یا رمز عبور اشتباه است!");
+    const handleLogin = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Store the token and set auth status
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("isAdmin", "true");
+                navigate("/admin");
+            } else {
+                alert("نام کاربری یا رمز عبور اشتباه است!");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("خطایی در ارتباط با سرور رخ داد.");
         }
     };
 

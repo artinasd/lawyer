@@ -22,8 +22,11 @@ function ImageInput(props) {
         async function handleImageUpload() {
             try {
                 const base64Image = await toBase64(file)
-                console.log(base64Image)
                 setBase64Image(base64Image)
+                // Pass the image data to the parent component
+                if (props.onChange) {
+                    props.onChange(base64Image);
+                }
             }
             catch (error) {
                 alert(error)
@@ -44,7 +47,9 @@ function ImageInput(props) {
                     بارگذاری تصویر جدید
                 </button>
             </div>
-            <img className='rounded-md w-[50%]' src={!base64Image ? props.image : base64Image} />
+            { (base64Image || props.image) && (
+                <img className='rounded-md w-[50%]' src={base64Image || props.image} alt="Preview" />
+            )}
         </div>
     )
 }

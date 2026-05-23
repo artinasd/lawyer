@@ -8,17 +8,21 @@ export default function AdminLogin() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        const res = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: email, password })
+        });
 
-        // Simulate an API login call
-        setTimeout(() => {
-            setIsLoading(false);
-            // In a real app, you'd check credentials. Here we just let them in.
-            alert("ورود موفقیت‌آمیز (Frontend Simulation)");
-            navigate('/admin'); // Redirect to admin panel
-        }, 1000);
+        if (res.ok) {
+            const { token } = await res.json();
+            localStorage.setItem('adminToken', token); // Save for later requests
+            navigate('/admin');
+        } else {
+            alert("نام کاربری یا رمز عبور اشتباه است");
+        }
     };
 
     return (

@@ -47,8 +47,6 @@ app.get('/api/posts', (req, res) => {
 // 4. ADD POST
 app.post('/api/posts', authenticate, (req, res) => {
     const { title, excerpt, content, author, image } = req.body;
-    if (!title || !title.trim() || !content || !content.trim()) return res.status(400).json({ message: "Required fields missing." });
-
     try {
         const stmt = db.prepare("INSERT INTO posts (title, excerpt, content, author, image) VALUES (?, ?, ?, ?, ?)");
         stmt.run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null);
@@ -58,101 +56,101 @@ app.post('/api/posts', authenticate, (req, res) => {
     }
 });
 
-// 5. GET COMMENTS FOR POST (PUBLIC - ONLY APPROVED)
+// 5. GET APPROVED COMMENTS (PUBLIC)
 app.get('/api/posts/:id/comments', (req, res) => {
-    const postId = req.params.id;
     try {
-        const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(postId);
+        const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(req.params.id);
         res.json(comments);
     } catch (error) {
         res.status(500).json({ message: "Error fetching comments" });
     }
 });
 
-// 6. ADD COMMENT (PUBLIC - DEFAULTS TO PENDING)
+// 6. ADD COMMENT (PUBLIC)
 app.post('/api/posts/:id/comments', (req, res) => {
-    const postId = req.params.id;
     const { name, content } = req.body;
-    if (!name || !name.trim() || !content || !content.trim()) return res.status(400).json({ message: "Fields required." });
-
     try {
         const stmt = db.prepare("INSERT INTO comments (post_id, name, content) VALUES (?, ?, ?)");
-        stmt.run(postId, name.trim(), content.trim());
+        stmt.run(req.params.id, name.trim(), content.trim());
         res.status(201).json({ message: "Comment added successfully" });
     } catch (error) {
         res.status(500).json({ message: "Failed to save comment." });
     }
 });
 
-// 7. GET ALL COMMENTS FOR ADMIN (PROTECTED)
+// 7. GET ALL COMMENTS (ADMIN)
 app.get('/api/admin/comments', authenticate, (req, res) => {
     try {
-        const comments = db.prepare(`
-            SELECT c.*, p.title as post_title
-            FROM comments c
-                     JOIN posts p ON c.post_id = p.id
-            ORDER BY c.created_at DESC
-        `).all();
+        const comments = db.prepare(`SELECT c.*, p.title as post_title FROM comments c JOIN posts p ON c.post_id = p.id ORDER BY c.created_at DESC`).all();
         res.json(comments);
     } catch (error) {
         res.status(500).json({ message: "Error fetching admin comments" });
     }
 });
 
-// 8. UPDATE COMMENT STATUS & REPLY (PROTECTED)
+// 8. UPDATE COMMENT STATUS
 app.put('/api/admin/comments/:id', authenticate, (req, res) => {
-    const { status, reply } = req.body;
     try {
         const stmt = db.prepare("UPDATE comments SET status = ?, reply = ? WHERE id = ?");
-        stmt.run(status, reply || null, req.params.id);
-        res.json({ message: "Comment updated successfully" });
+        stmt.run(req.body.status, req.body.reply || null, req.params.id);
+        res.json({ message: "Comment updated" });
     } catch (error) {
         res.status(500).json({ message: "Error updating comment" });
     }
 });
 
-// 9. DELETE POST (PROTECTED)
+// 9. DELETE POST
 app.delete('/api/posts/:id', authenticate, (req, res) => {
     try {
-        const stmt = db.prepare("DELETE FROM posts WHERE id = ?");
-        const info = stmt.run(req.params.id);
-
-        if (info.changes > 0) {
-            res.json({ message: "Post deleted successfully" });
-        } else {
-            res.status(404).json({ message: "Post not found" });
-        }
+        db.prepare("DELETE FROM posts WHERE id = ?").run(req.params.id);
+        res.json({ message: "Deleted" });
     } catch (error) {
-        res.status(500).json({ message: "Error deleting post" });
+        res.status(500).json({ message: "Error deleting" });
     }
 });
 
-// 10. EDIT POST (PROTECTED)
+// 10. EDIT POST
 app.put('/api/posts/:id', authenticate, (req, res) => {
     const { title, excerpt, content, author, image } = req.body;
-    if (!title || !title.trim() || !content || !content.trim()) {
-        return res.status(400).json({ message: "Title and content are required fields." });
-    }
-
     try {
-        const stmt = db.prepare("UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, image = ? WHERE id = ?");
-        const info = stmt.run(
-            title.trim(),
-            excerpt?.trim() || null,
-            content.trim(),
-            author?.trim() || null,
-            image || null,
-            req.params.id
-        );
-
-        if (info.changes > 0) {
-            res.json({ message: "Post updated successfully" });
-        } else {
-            res.status(404).json({ message: "Post not found" });
-        }
+        db.prepare("UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, image = ? WHERE id = ?")
+            .run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null, req.params.id);
+        res.json({ message: "Updated" });
     } catch (error) {
-        console.error("Database Error:", error);
-        res.status(500).json({ message: "Failed to update post." });
+        res.status(500).json({ message: "Update failed" });
+    }
+});
+
+// 11. GET GLOBAL SETTINGS (PUBLIC)
+app.get('/api/settings', (req, res) => {
+    try {
+        const settings = db.prepare("SELECT * FROM site_settings WHERE id = 1").get();
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching settings" });
+    }
+});
+
+// 12. UPDATE GLOBAL SETTINGS (PROTECTED)
+app.put('/api/settings', authenticate, (req, res) => {
+    const { lawyer_name, lawyer_bio, lawyer_image, services_json, testimonials_json } = req.body;
+    try {
+        const stmt = db.prepare(`
+            UPDATE site_settings 
+            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?, services_json = ?, testimonials_json = ? 
+            WHERE id = 1
+        `);
+        stmt.run(
+            lawyer_name || null,
+            lawyer_bio || null,
+            lawyer_image || null,
+            services_json || '[]',
+            testimonials_json || '[]'
+        );
+        res.json({ message: "Settings saved successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to save settings" });
     }
 });
 

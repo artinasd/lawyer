@@ -1,31 +1,79 @@
+// lawyer/src/Components/SPA Components/Comments.jsx
 import React, { useEffect, useState } from "react";
 import FourElementCard from "../Costume UI Components/FourElementCard.jsx";
+import fallbackPic from '../../assets/person1.jpg';
 import { CommentsData } from "../HardCodedData/CommentsData.js";
 
 function Comments() {
     const [menuState, setMenuState] = useState(0);
     const [isFading, setIsFading] = useState(false);
+    const [settingsComments, setSettingsComments] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Smooth transition logic
     useEffect(() => {
+        fetch('http://localhost:5000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                const parsed = JSON.parse(data?.testimonials_json || '[]');
+                setSettingsComments(parsed);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Error fetching comments:", err);
+                setLoading(false);
+            });
+    }, []);
+
+    // SMART FALLBACK
+    const activeComments = settingsComments.length > 0 ? settingsComments : CommentsData;
+
+    useEffect(() => {
+        if (menuState >= activeComments.length) {
+            setMenuState(0);
+        }
+    }, [activeComments, menuState]);
+
+    useEffect(() => {
+        if (activeComments.length <= 1) return;
+
         const timer = setInterval(() => {
-            handleSlideChange((prev) => (prev < CommentsData.length - 1 ? prev + 1 : 0));
-        }, 5000); // Increased to 5s for better readability
+            handleSlideChange((prev) => (prev < activeComments.length - 1 ? prev + 1 : 0));
+        }, 5000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [activeComments.length]);
 
     const handleSlideChange = (newIndex) => {
         setIsFading(true);
         setTimeout(() => {
-            setMenuState(newIndex);
+            setMenuState(prev => {
+                const nextVal = typeof newIndex === 'function' ? newIndex(prev) : newIndex;
+                return nextVal < activeComments.length ? nextVal : 0;
+            });
             setIsFading(false);
-        }, 300); // 300ms fade out before changing content
+        }, 300);
+    };
+
+    if (loading) return null;
+
+    const safeMenuState = menuState < activeComments.length ? menuState : 0;
+    const currentComment = activeComments[safeMenuState] || {};
+
+    // Generate Avatar based on the CMS selection
+    const getAvatarPic = (comment) => {
+        // Simple inline SVGs converted to Data URIs
+        const maleAvatar = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234038C9'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+        const femaleAvatar = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C9388B'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+
+        if (comment.avatar === 'female') return femaleAvatar;
+        if (comment.avatar === 'male') return maleAvatar;
+
+        // Fallback for hardcoded data or older comments
+        return comment.image || fallbackPic;
     };
 
     return (
         <section className='bg-white w-full py-24 relative overflow-hidden rtl'>
-            {/* Decorative Background Elements */}
             <div className="absolute top-10 right-10 md:top-20 md:right-32 text-[#F9FAFB] z-0 opacity-80" style={{ fontSize: '20rem', lineHeight: '1', fontFamily: 'serif' }}>
                 &rdquo;
             </div>
@@ -44,35 +92,36 @@ function Comments() {
                     </p>
                 </div>
 
-                {/* Comment Card Container */}
                 <div className={`w-full transition-opacity duration-300 ease-in-out ${isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
                     <div className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
                         <FourElementCard
-                            comment={CommentsData[menuState].comment}
-                            name={CommentsData[menuState].name}
-                            position={CommentsData[menuState].position}
-                            picture={CommentsData[menuState].image}
+                            comment={currentComment.text || currentComment.comment || ''}
+                            name={currentComment.name || 'موکل ناشناس'}
+                            position={currentComment.position || "موکل"}
+                            // Dynamically apply the avatar
+                            picture={getAvatarPic(currentComment)}
                         />
                     </div>
                 </div>
 
-                {/* Modern Navigation Dots */}
-                <div className='flex flex-row items-center gap-3 mt-10'>
-                    {CommentsData.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => typeof handleSlideChange === 'function' && handleSlideChange(index)}
-                            aria-label={`View comment ${index + 1}`}
-                            className="focus:outline-none p-2"
-                        >
-                            <div className={`transition-all duration-300 rounded-full ${
-                                menuState === index
-                                    ? 'w-8 h-2.5 bg-[#FFCA0C] shadow-[0_0_10px_rgba(255,202,12,0.5)]'
-                                    : 'w-2.5 h-2.5 bg-gray-200 hover:bg-gray-300'
-                            }`} />
-                        </button>
-                    ))}
-                </div>
+                {activeComments.length > 1 && (
+                    <div className='flex flex-row items-center gap-3 mt-10'>
+                        {activeComments.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleSlideChange(index)}
+                                aria-label={`View comment ${index + 1}`}
+                                className="focus:outline-none p-2"
+                            >
+                                <div className={`transition-all duration-300 rounded-full ${
+                                    safeMenuState === index
+                                        ? 'w-8 h-2.5 bg-[#FFCA0C] shadow-[0_0_10px_rgba(255,202,12,0.5)]'
+                                        : 'w-2.5 h-2.5 bg-gray-200 hover:bg-gray-300'
+                                }`} />
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     );

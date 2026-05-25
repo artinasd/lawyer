@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import lawyerHand from '../../assets/lawyerHand.png';
 import TwoElementCard from "../Costume UI Components/TwoElementCard.jsx";
 import medalIcon from '../../assets/medal.png';
@@ -6,6 +6,21 @@ import caseIcon from '../../assets/caseIcon.png';
 import bookIcon from '../../assets/bookIcon.png';
 
 function AboutPage() {
+    const [settings, setSettings] = useState(null);
+
+    useEffect(() => {
+        // Fetch CMS Settings
+        fetch('http://localhost:5000/api/settings')
+            .then(res => res.json())
+            .then(data => setSettings(data))
+            .catch(err => console.error("Error fetching settings:", err));
+    }, []);
+
+    // Dynamic Variables with Fallbacks
+    const lawyerName = settings?.lawyer_name || "محمد حقوقی";
+    const lawyerBio = settings?.lawyer_bio || "من محمد حقوقی، وکیل پایه یک دادگستری با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی هستم. تخصص من در دعاوی مدنی، کیفری، خانواده و قراردادهای تجاری است.\n\nهدف من ارائه خدمات حقوقی با بالاترین استانداردهای حرفه‌ای و اخلاقی است. من به هر پرونده با دقت و تعهد کامل رسیدگی می‌کنم و همواره منافع موکلین خود را در اولویت قرار می‌دهم.";
+    const lawyerImage = settings?.lawyer_image || lawyerHand;
+
     return (
         <section className='bg-white py-24 rtl overflow-hidden'>
             <div className='max-w-7xl mx-auto px-6 lg:px-8'>
@@ -20,8 +35,8 @@ function AboutPage() {
                         <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl group">
                             <div className="absolute inset-0 bg-[#3C3A86]/20 mix-blend-multiply group-hover:bg-transparent transition-colors duration-500"></div>
                             <img
-                                src={lawyerHand}
-                                alt="محمد حقوقی - وکیل پایه یک"
+                                src={lawyerImage}
+                                alt={lawyerName}
                                 className="w-full h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
                             />
                         </div>
@@ -30,7 +45,7 @@ function AboutPage() {
                     {/* Text Section */}
                     <div className='w-full lg:w-1/2 flex flex-col items-start'>
                         <div className="inline-block px-4 py-1.5 rounded-full bg-[#3C3A86]/10 text-[#3C3A86] font-semibold text-sm mb-4 border border-[#3C3A86]/20">
-                            آشنایی با وکیل
+                            آشنایی با {lawyerName}
                         </div>
 
                         <h2 className='text-4xl md:text-5xl font-black text-gray-900 mb-6'>
@@ -40,10 +55,9 @@ function AboutPage() {
                             </span>
                         </h2>
 
-                        <p className='text-gray-600 text-lg leading-loose mb-8 text-justify'>
-                            من <strong className="text-gray-900">محمد حقوقی</strong>، وکیل پایه یک دادگستری با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی هستم. تخصص من در دعاوی مدنی، کیفری، خانواده و قراردادهای تجاری است.
-                            <br/><br/>
-                            هدف من ارائه خدمات حقوقی با بالاترین استانداردهای حرفه‌ای و اخلاقی است. من به هر پرونده با دقت و تعهد کامل رسیدگی می‌کنم و همواره منافع موکلین خود را در اولویت قرار می‌دهم.
+                        {/* whitespace-pre-wrap ensures that line breaks added in the CMS are respected here! */}
+                        <p className='text-gray-600 text-lg leading-loose mb-8 text-justify whitespace-pre-wrap'>
+                            {lawyerBio}
                         </p>
 
                         {/* Stats Grid */}

@@ -17,25 +17,34 @@ db.exec(`
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        content TEXT NOT NULL,
-        status TEXT DEFAULT 'pending', 
-        reply TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-    )
+                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            post_id INTEGER NOT NULL,
+                                            name TEXT NOT NULL,
+                                            content TEXT NOT NULL,
+                                            status TEXT DEFAULT 'pending',
+                                            reply TEXT,
+                                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        )
 `);
 
-// Auto-Migration: If the comments table already exists from the previous step,
-// this will safely add the new columns without deleting your data.
+// NEW: Global Site Settings Table
+db.exec(`
+    CREATE TABLE IF NOT EXISTS site_settings (
+                                                 id INTEGER PRIMARY KEY CHECK (id = 1),
+        lawyer_name TEXT DEFAULT '',
+        lawyer_bio TEXT DEFAULT '',
+        lawyer_image TEXT,
+        services_json TEXT DEFAULT '[]',
+        testimonials_json TEXT DEFAULT '[]'
+        )
+`);
+
+// Seed initial settings row if it doesn't exist
 try {
-    db.prepare("ALTER TABLE comments ADD COLUMN status TEXT DEFAULT 'pending'").run();
-    db.prepare("ALTER TABLE comments ADD COLUMN reply TEXT").run();
-    console.log("Migration: Added status and reply columns to comments.");
+    db.prepare("INSERT OR IGNORE INTO site_settings (id) VALUES (1)").run();
 } catch (error) {
-    // Columns likely already exist, which is perfectly fine.
+    console.error("Settings init error:", error);
 }
 
 module.exports = db;

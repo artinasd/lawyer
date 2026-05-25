@@ -1,3 +1,4 @@
+// lawyer/src/Components/Homepage.jsx
 import Header from "./SPA Components/Header.jsx";
 import AboutPage from "./SPA Components/AboutPage.jsx";
 import Services from "./SPA Components/Services.jsx";

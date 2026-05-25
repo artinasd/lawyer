@@ -10,7 +10,8 @@ function AdminLogin() {
 
     const handleLogin = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/login', {
+            // Updated URL to port 5000
+            const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user, password: pass })
@@ -18,7 +19,6 @@ function AdminLogin() {
 
             if (response.ok) {
                 const data = await response.json();
-                // Store the token and set auth status
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("isAdmin", "true");
                 navigate("/admin");
@@ -27,7 +27,7 @@ function AdminLogin() {
             }
         } catch (error) {
             console.error("Login error:", error);
-            alert("خطایی در ارتباط با سرور رخ داد.");
+            alert("خطایی در ارتباط با سرور رخ داد. مطمئن شوید بک‌اندران است.");
         }
     };
 

@@ -1,47 +1,26 @@
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import MapsUgcOutlinedIcon from '@mui/icons-material/MapsUgcOutlined';
-import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
-import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
-import {useNavigate} from "react-router-dom";
+// lawyer/src/Components/Admin/AdminPanel.jsx
+import { useNavigate } from "react-router-dom";
 
 function AdminPanel() {
     const navigate = useNavigate();
 
     return (
-        <div className='h-screen flex flex-col bg-gray-50'>
-            <div className='rtl flex justify-center space-x-10 my-auto'>
-
-                <button onClick={() => navigate('/new-post')} className='bg-white p-2 aspect-square rounded-lg w-32 shadow-lg hover:shadow transition transition active:bg-gray-100'>
-                    <div>
-                        <AddOutlinedIcon />
-                        <p>ثبت پست جدید</p>
-                    </div>
+        <div className='p-10 rtl'>
+            <h1 className='text-2xl font-bold mb-6'>پنل مدیریت</h1>
+            <div className='grid grid-cols-2 gap-4'>
+                <button
+                    onClick={() => navigate('/admin/new-post')}
+                    className='bg-blue-600 text-white p-4 rounded'>
+                    ثبت پست جدید
                 </button>
-
-                <button className='bg-white p-2 aspect-square rounded-lg w-32 shadow-lg hover:shadow transition transition active:bg-gray-100'>
-                    <div>
-                        <MapsUgcOutlinedIcon />
-                        <p>ثبت نظر جدید</p>
-                    </div>
+                <button
+                    onClick={() => navigate('/admin/all-posts')} // مسیر جدید برای مشاهده پست‌ها
+                    className='bg-green-600 text-white p-4 rounded'>
+                    مشاهده همه پست‌ها
                 </button>
-
-                <button className='bg-white p-2 aspect-square rounded-lg w-32 shadow-lg hover:shadow transition transition active:bg-gray-100'>
-                    <div>
-                        <RemoveRedEyeOutlinedIcon />
-                        <p>همه پست ها</p>
-                    </div>
-                </button>
-
-                <button className='bg-white p-2 aspect-square rounded-lg w-32 shadow-lg hover:shadow transition active:bg-gray-100'>
-                    <div>
-                        <SummarizeOutlinedIcon />
-                        <p>همه نظرات</p>
-                    </div>
-                </button>
-
             </div>
         </div>
-    )
+    );
 }
 
-export default AdminPanel
+export default AdminPanel;

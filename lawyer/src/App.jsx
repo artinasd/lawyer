@@ -1,3 +1,4 @@
+// lawyer/src/App.jsx
 import { createBrowserRouter, RouterProvider, Outlet, Navigate } from "react-router-dom";
 import Homepage from "./Components/Homepage.jsx";
 import BlogLanding from "./Components/BlogLanding.jsx";
@@ -5,11 +6,10 @@ import BlogPost from "./Components/Blog Components/BlogPost.jsx";
 import AdminPanel from "./Components/Admin/AdminPanel.jsx";
 import AdminLogin from "./Components/Admin/AdminLogin.jsx";
 import NewPost from "./Components/Admin/NewPost.jsx";
+import AllPosts from "./Components/Admin/AllPosts.jsx"; // New Import
 import NavigationBar from "./Components/Permanent Components/NavigationBar.jsx";
 import Footer from "./Components/SPA Components/Footer.jsx";
 
-// 1. The Layout Wrapper: This renders the Nav and Footer once,
-// and puts the active page in the <Outlet />
 const RootLayout = () => {
     return (
         <div className="min-h-screen flex flex-col">
@@ -22,7 +22,6 @@ const RootLayout = () => {
     );
 };
 
-// 2. The Auth Guard: Protects admin routes
 const AuthGuard = ({ children }) => {
     const isAuthenticated = localStorage.getItem("isAdmin") === "true";
     return isAuthenticated ? children : <Navigate to="/login" />;
@@ -32,7 +31,7 @@ function App() {
     const router = createBrowserRouter([
         {
             path: '/',
-            element: <RootLayout />, // All routes now use this layout
+            element: <RootLayout />,
             children: [
                 { path: '/', element: <Homepage /> },
                 { path: '/blog', element: <BlogLanding /> },
@@ -47,6 +46,10 @@ function App() {
                 {
                     path: '/new-post',
                     element: <AuthGuard><NewPost /></AuthGuard>
+                },
+                {
+                    path: '/admin/all-posts', // Added new route
+                    element: <AuthGuard><AllPosts /></AuthGuard>
                 },
             ]
         }

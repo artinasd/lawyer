@@ -11,8 +11,8 @@ export const ContactInfoData = [
             <LocationOnOutlinedIcon style={{color: '#FFCA0C'}} fontSize="medium" />
         </div>
         <div className='flex flex-col items-start text-right'>
-            <h3 className='text-lg font-bold text-white mb-1'>آدرس دفتر</h3>
-            <p className='text-gray-200 text-sm'>بناب، بزرگراه ولایت، جنب پلیس راه</p>
+            <h3 className='text-lg font-bold text-white mb-1'>محل سکونت</h3>
+            <p className='text-gray-200 text-sm'>تهران</p>
         </div>
     </div>,
 
@@ -23,7 +23,7 @@ export const ContactInfoData = [
         </div>
         <div className='flex flex-col items-start text-right'>
             <h3 className='text-lg font-bold text-white mb-1'>شماره تماس</h3>
-            <p className='text-gray-200 text-sm' dir="ltr">09901153548</p>
+            <p className='text-gray-200 text-sm' dir="ltr">09124201285</p>
         </div>
     </div>,
 
@@ -34,7 +34,7 @@ export const ContactInfoData = [
         </div>
         <div className='flex flex-col items-start text-right'>
             <h3 className='text-lg font-bold text-white mb-1'>آدرس ایمیل</h3>
-            <p className='text-gray-200 text-sm'>artinasd.dev@gmail.com</p>
+            <p className='text-gray-200 text-sm'>chalaki.ebrahim@gmail.com</p>
         </div>
     </div>,
 

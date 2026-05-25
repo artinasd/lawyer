@@ -27,10 +27,10 @@ function Footer() {
                     <div className="flex flex-col md:pr-10">
                         <h3 className="text-white text-lg font-bold mb-4">دسترسی سریع</h3>
                         <ul className="space-y-3 text-sm text-gray-400">
-                            <li><a href="/#home" className="hover:text-[#FFCA0C] transition-colors">صفحه اصلی</a></li>
-                            <li><a href="/#about" className="hover:text-[#FFCA0C] transition-colors">درباره وکیل</a></li>
-                            <li><a href="/#services" className="hover:text-[#FFCA0C] transition-colors">خدمات حقوقی</a></li>
-                            <li><Link to="/blog" className="hover:text-[#FFCA0C] transition-colors">مقالات و آموزش‌ها</Link></li>
+                            <li><a href="https://eadl.ir/" className="hover:text-[#FFCA0C] transition-colors">وبسایت قوه قضائیه</a></li>
+                            <li><a href="https://icbar.ir/" className="hover:text-[#FFCA0C] transition-colors">کانون وکلای دادگستری مرکز</a></li>
+                            <li><a href="https://adliran.ir/Home/Index" className="hover:text-[#FFCA0C] transition-colors">سامانه عدل ایران</a></li>
+                            <li><Link to="https://iraninternationalhub.ir/" className="hover:text-[#FFCA0C] transition-colors">هاب بین المللی فناوری و نوآوری ایران</Link></li>
                         </ul>
                     </div>
 

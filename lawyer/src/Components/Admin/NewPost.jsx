@@ -1,21 +1,21 @@
 // lawyer/src/Components/Admin/NewPost.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InputTag from "../Costume UI Components/InputTag.jsx";
 import TextArea from "../Costume UI Components/TextArea.jsx";
 import ImageInput from "../Costume UI Components/ImageInput.jsx";
 
 function NewPost() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({ title: '', excerpt: '', content: '', author: '', image: '' });
     const [loading, setLoading] = useState(false);
 
     const handleAddPost = async () => {
-        // 1. Validate required fields
         if (!formData.title.trim() || !formData.content.trim()) {
             alert("لطفا عنوان و متن مقاله را وارد کنید. (Title and Content are required)");
             return;
         }
 
-        // 2. Safe image length check (Optional chaining prevents crashes if null)
         if ((formData.image?.length || 0) > 4000000) {
             alert("حجم تصویر بیش از حد مجاز است. لطفا تصویر کوچکتری انتخاب کنید.");
             return;
@@ -46,7 +46,6 @@ function NewPost() {
 
             if (response.ok) {
                 alert("مقاله با موفقیت در دیتابیس ذخیره شد!");
-                // Reset form completely
                 setFormData({ title: '', excerpt: '', content: '', author: '', image: '' });
             } else {
                 const errorData = await response.json();
@@ -61,11 +60,21 @@ function NewPost() {
     };
 
     return (
-        <div className='bg-gray-50 min-h-screen p-20'>
-            <div className='bg-white rounded-lg p-6 mx-auto w-[60%] flex flex-col gap-4'>
+        <div className='bg-gray-50 min-h-screen p-20 rtl'>
+            <div className='bg-white rounded-xl shadow-sm border border-gray-100 p-8 mx-auto w-full md:w-[60%] flex flex-col gap-4'>
+
+                {/* Header with Back Button */}
+                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-4">
+                    <h2 className="text-2xl font-bold text-gray-800">ثبت مقاله جدید</h2>
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm border border-gray-200">
+                        بازگشت به پنل
+                    </button>
+                </div>
+
                 <InputTag label='عنوان مقاله *' name="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
 
-                {/* Fixed: Added missing Author and Excerpt fields */}
                 <InputTag label='نام نویسنده' name="author" value={formData.author} onChange={(e) => setFormData({...formData, author: e.target.value})} />
                 <TextArea label='خلاصه مقاله (Excerpt)' name="excerpt" value={formData.excerpt} onChange={(e) => setFormData({...formData, excerpt: e.target.value})} />
 
@@ -79,7 +88,7 @@ function NewPost() {
                 <button
                     onClick={handleAddPost}
                     disabled={loading}
-                    className={`text-white p-3 rounded mt-4 w-full transition-colors ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                    className={`text-white p-4 rounded-lg mt-6 w-full font-bold transition-colors ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                 >
                     {loading ? 'در حال ثبت...' : 'ثبت در دیتابیس'}
                 </button>

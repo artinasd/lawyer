@@ -62,7 +62,6 @@ app.post('/api/posts', authenticate, (req, res) => {
 app.get('/api/posts/:id/comments', (req, res) => {
     const postId = req.params.id;
     try {
-        // Notice we only select comments where status is 'approved'
         const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(postId);
         res.json(comments);
     } catch (error) {
@@ -88,11 +87,10 @@ app.post('/api/posts/:id/comments', (req, res) => {
 // 7. GET ALL COMMENTS FOR ADMIN (PROTECTED)
 app.get('/api/admin/comments', authenticate, (req, res) => {
     try {
-        // Join with posts table so the admin sees the post title alongside the comment
         const comments = db.prepare(`
-            SELECT c.*, p.title as post_title 
-            FROM comments c 
-            JOIN posts p ON c.post_id = p.id 
+            SELECT c.*, p.title as post_title
+            FROM comments c
+                     JOIN posts p ON c.post_id = p.id
             ORDER BY c.created_at DESC
         `).all();
         res.json(comments);
@@ -110,6 +108,51 @@ app.put('/api/admin/comments/:id', authenticate, (req, res) => {
         res.json({ message: "Comment updated successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error updating comment" });
+    }
+});
+
+// 9. DELETE POST (PROTECTED)
+app.delete('/api/posts/:id', authenticate, (req, res) => {
+    try {
+        const stmt = db.prepare("DELETE FROM posts WHERE id = ?");
+        const info = stmt.run(req.params.id);
+
+        if (info.changes > 0) {
+            res.json({ message: "Post deleted successfully" });
+        } else {
+            res.status(404).json({ message: "Post not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting post" });
+    }
+});
+
+// 10. EDIT POST (PROTECTED)
+app.put('/api/posts/:id', authenticate, (req, res) => {
+    const { title, excerpt, content, author, image } = req.body;
+    if (!title || !title.trim() || !content || !content.trim()) {
+        return res.status(400).json({ message: "Title and content are required fields." });
+    }
+
+    try {
+        const stmt = db.prepare("UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, image = ? WHERE id = ?");
+        const info = stmt.run(
+            title.trim(),
+            excerpt?.trim() || null,
+            content.trim(),
+            author?.trim() || null,
+            image || null,
+            req.params.id
+        );
+
+        if (info.changes > 0) {
+            res.json({ message: "Post updated successfully" });
+        } else {
+            res.status(404).json({ message: "Post not found" });
+        }
+    } catch (error) {
+        console.error("Database Error:", error);
+        res.status(500).json({ message: "Failed to update post." });
     }
 });
 

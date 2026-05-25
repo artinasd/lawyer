@@ -8,15 +8,12 @@ const app = express();
 const SECRET_KEY = "my_ultra_secure_secret";
 
 app.use(cors());
-
-// Limits increased to handle base64 images up to 3MB+
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-// 1. LOGIN ENDPOINT
+// 1. LOGIN
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-
     if (username === "admin" && password === "password123") {
         const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
         res.json({ token });
@@ -25,20 +22,19 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// 2. PROTECTED ROUTE MIDDLEWARE
+// 2. AUTH MIDDLEWARE
 const authenticate = (req, res, next) => {
     const token = req.headers['authorization'];
-    if (!token) return res.status(403).send("No token provided");
+    if (!token || !token.startsWith('Bearer ')) return res.status(403).json({ message: "No token" });
 
-    // Split "Bearer <token>"
     const bearerToken = token.split(' ')[1];
     jwt.verify(bearerToken, SECRET_KEY, (err, decoded) => {
-        if (err) return res.status(401).send("Unauthorized");
+        if (err) return res.status(401).json({ message: "Unauthorized" });
         next();
     });
 };
 
-// 3. GET ALL POSTS (Public or Protected, depending on your needs)
+// 3. GET ALL POSTS
 app.get('/api/posts', (req, res) => {
     try {
         const posts = db.prepare("SELECT * FROM posts ORDER BY id DESC").all();
@@ -48,17 +44,72 @@ app.get('/api/posts', (req, res) => {
     }
 });
 
-// 4. ADD NEW POST
+// 4. ADD POST
 app.post('/api/posts', authenticate, (req, res) => {
     const { title, excerpt, content, author, image } = req.body;
+    if (!title || !title.trim() || !content || !content.trim()) return res.status(400).json({ message: "Required fields missing." });
 
     try {
         const stmt = db.prepare("INSERT INTO posts (title, excerpt, content, author, image) VALUES (?, ?, ?, ?, ?)");
-        stmt.run(title, excerpt, content, author, image);
+        stmt.run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null);
         res.status(201).json({ message: "Success" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to save post" });
+        res.status(500).json({ message: "Failed to save post." });
+    }
+});
+
+// 5. GET COMMENTS FOR POST (PUBLIC - ONLY APPROVED)
+app.get('/api/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+    try {
+        // Notice we only select comments where status is 'approved'
+        const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(postId);
+        res.json(comments);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching comments" });
+    }
+});
+
+// 6. ADD COMMENT (PUBLIC - DEFAULTS TO PENDING)
+app.post('/api/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+    const { name, content } = req.body;
+    if (!name || !name.trim() || !content || !content.trim()) return res.status(400).json({ message: "Fields required." });
+
+    try {
+        const stmt = db.prepare("INSERT INTO comments (post_id, name, content) VALUES (?, ?, ?)");
+        stmt.run(postId, name.trim(), content.trim());
+        res.status(201).json({ message: "Comment added successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to save comment." });
+    }
+});
+
+// 7. GET ALL COMMENTS FOR ADMIN (PROTECTED)
+app.get('/api/admin/comments', authenticate, (req, res) => {
+    try {
+        // Join with posts table so the admin sees the post title alongside the comment
+        const comments = db.prepare(`
+            SELECT c.*, p.title as post_title 
+            FROM comments c 
+            JOIN posts p ON c.post_id = p.id 
+            ORDER BY c.created_at DESC
+        `).all();
+        res.json(comments);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching admin comments" });
+    }
+});
+
+// 8. UPDATE COMMENT STATUS & REPLY (PROTECTED)
+app.put('/api/admin/comments/:id', authenticate, (req, res) => {
+    const { status, reply } = req.body;
+    try {
+        const stmt = db.prepare("UPDATE comments SET status = ?, reply = ? WHERE id = ?");
+        stmt.run(status, reply || null, req.params.id);
+        res.json({ message: "Comment updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating comment" });
     }
 });
 

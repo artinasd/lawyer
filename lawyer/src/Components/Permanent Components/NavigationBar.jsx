@@ -31,12 +31,13 @@ export default function NavigationBar() {
                         <a href="/#services" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
                             خدمات
                         </a>
+                        <a href="/#contact" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors pl-8">
+                            تماس با ما
+                        </a>
                         <Link to="/blog" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
                             مقالات حقوقی
                         </Link>
-                        <a href="/#contact" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
-                            تماس با ما
-                        </a>
+
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -83,13 +84,6 @@ export default function NavigationBar() {
                         >
                             خدمات
                         </a>
-                        <Link
-                            to="/blog"
-                            onClick={() => setIsOpen(false)}
-                            className="text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 block px-3 py-2 rounded-md font-medium text-right"
-                        >
-                            مقالات حقوقی
-                        </Link>
                         <a
                             href="/#contact"
                             onClick={() => setIsOpen(false)}
@@ -97,6 +91,13 @@ export default function NavigationBar() {
                         >
                             تماس با ما
                         </a>
+                        <Link
+                            to="/blog"
+                            onClick={() => setIsOpen(false)}
+                            className="text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 block px-3 py-2 rounded-md font-medium text-right"
+                        >
+                            مقالات حقوقی
+                        </Link>
                     </div>
                 </div>
             )}

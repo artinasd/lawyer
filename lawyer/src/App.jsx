@@ -6,7 +6,8 @@ import BlogPost from "./Components/Blog Components/BlogPost.jsx";
 import AdminPanel from "./Components/Admin/AdminPanel.jsx";
 import AdminLogin from "./Components/Admin/AdminLogin.jsx";
 import NewPost from "./Components/Admin/NewPost.jsx";
-import AllPosts from "./Components/Admin/AllPosts.jsx"; // New Import
+import AllPosts from "./Components/Admin/AllPosts.jsx";
+import AdminComments from "./Components/Admin/AdminComments.jsx"; // New Import
 import NavigationBar from "./Components/Permanent Components/NavigationBar.jsx";
 import Footer from "./Components/SPA Components/Footer.jsx";
 
@@ -39,18 +40,10 @@ function App() {
                 { path: '/login', element: <AdminLogin /> },
 
                 // Protected Routes
-                {
-                    path: '/admin',
-                    element: <AuthGuard><AdminPanel /></AuthGuard>
-                },
-                {
-                    path: '/new-post',
-                    element: <AuthGuard><NewPost /></AuthGuard>
-                },
-                {
-                    path: '/admin/all-posts', // Added new route
-                    element: <AuthGuard><AllPosts /></AuthGuard>
-                },
+                { path: '/admin', element: <AuthGuard><AdminPanel /></AuthGuard> },
+                { path: '/admin/new-post', element: <AuthGuard><NewPost /></AuthGuard> },
+                { path: '/admin/all-posts', element: <AuthGuard><AllPosts /></AuthGuard> },
+                { path: '/admin/comments', element: <AuthGuard><AdminComments /></AuthGuard> }, // New Route
             ]
         }
     ]);

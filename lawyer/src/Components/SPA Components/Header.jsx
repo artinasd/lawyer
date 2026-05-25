@@ -1,8 +1,25 @@
-import React from 'react';
-import courtStuff from '../../assets/courtStuff.png'; // Make sure path is correct
-import emblem from '../../assets/classic.png'
+// lawyer/src/Components/SPA Components/Header.jsx
+import React, { useState, useEffect } from 'react';
+import courtStuff from '../../assets/courtStuff.png';
+import emblem from '../../assets/classic.png';
 
 function Header() {
+    const [settings, setSettings] = useState(null);
+
+    useEffect(() => {
+        // Fetch CMS Settings
+        fetch('http://localhost:5000/api/settings')
+            .then(res => res.json())
+            .then(data => setSettings(data))
+            .catch(err => console.error("Error fetching settings:", err));
+    }, []);
+
+    // Dynamic Variables with Fallbacks
+    const lawyerName = settings?.lawyer_name || "تیم متخصص ما";
+
+    // CHANGED: Now reading from header_bio!
+    const headerDescription = settings?.header_bio || "با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی، به شما کمک می‌کنیم تا به بهترین نتیجه ممکن در پرونده‌های حقوقی خود دست یابید. تلاش ما بر ارائه مشاوره‌های جامع و به‌روز، همراه با ارائه راهکارهای متناسب است.";
+
     return (
         <header className='relative w-full min-h-[90vh] md:min-h-[600px] flex items-center justify-center overflow-hidden bg-[#3C3A86] rtl'>
             {/* Background Image with Modern Gradient Overlay */}
@@ -21,9 +38,9 @@ function Header() {
                 {/* Right Side (Text) */}
                 <div className='flex flex-col items-center md:items-start text-center md:text-right w-full md:w-3/5 space-y-6'>
                     <h1 className='text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight drop-shadow-lg'>
-                        وکالت حرفه‌ای برای<br/>
+                        وکالت حرفه‌ای با<br/>
                         <span className='text-[#FFCA0C] relative inline-block mt-2'>
-                            دفاع از حقوق شما
+                            {lawyerName}
                             {/* Decorative underline */}
                             <svg className="absolute w-full h-3 -bottom-1 left-0 text-[#FFCA0C]/40" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="transparent"/>
@@ -31,18 +48,25 @@ function Header() {
                         </span>
                     </h1>
 
-                    <p className='text-gray-200 text-lg md:text-xl font-light max-w-2xl leading-relaxed opacity-90'>
-                        با بیش از ۱۵ سال تجربه در زمینه‌های مختلف حقوقی، به شما کمک می‌کنیم تا به بهترین نتیجه ممکن در پرونده‌های حقوقی خود دست یابید. تلاش ما بر ارائه مشاوره‌های جامع و به‌روز، همراه با ارائه راهکارهای متناسب است.
+                    {/* line-clamp-3 keeps it clean and stops it from overflowing the hero area */}
+                    <p className='text-gray-200 text-lg md:text-xl font-light max-w-2xl leading-relaxed opacity-90 line-clamp-3 whitespace-pre-wrap'>
+                        {headerDescription}
                     </p>
 
-                    {/* Action Buttons */}
+                    {/* Action Buttons - Anchor tags for SPA scrolling */}
                     <div className='flex flex-col sm:flex-row gap-4 pt-4 w-full justify-center md:justify-start'>
-                        <button className='bg-[#FFCA0C] hover:bg-[#E5B50A] text-gray-900 font-bold px-8 py-4 rounded-xl shadow-[0_4px_14px_0_rgba(255,202,12,0.39)] hover:shadow-[0_6px_20px_rgba(255,202,12,0.23)] hover:-translate-y-1 transition-all duration-300'>
+                        <a
+                            href="#contact"
+                            className='inline-block text-center bg-[#FFCA0C] hover:bg-[#E5B50A] text-gray-900 font-bold px-8 py-4 rounded-xl shadow-[0_4px_14px_0_rgba(255,202,12,0.39)] hover:shadow-[0_6px_20px_rgba(255,202,12,0.23)] hover:-translate-y-1 transition-all duration-300'
+                        >
                             مشاوره رایگان
-                        </button>
-                        <button className='bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium px-8 py-4 rounded-xl hover:-translate-y-1 transition-all duration-300'>
+                        </a>
+                        <a
+                            href="#services"
+                            className='inline-block text-center bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium px-8 py-4 rounded-xl hover:-translate-y-1 transition-all duration-300'
+                        >
                             خدمات حقوقی
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -50,7 +74,7 @@ function Header() {
                 <div className='hidden md:flex w-full md:w-2/5 justify-end'>
                     <div className='w-full aspect-square max-w-[400px] border-4 border-white/10 rounded-full flex items-center justify-center p-4 relative backdrop-blur-sm'>
                         <div className='w-full h-full border border-[#FFCA0C]/50 rounded-full animate-[spin_20s_linear_infinite] absolute'></div>
-                        <img src={emblem} alt="Court Logo" className="w-2/3 object-contain opacity-80 mix-blend-screen drop-shadow-2xl scale-200"/>
+                        <img src={emblem} alt="Court Logo" className="scale-200 w-2/3 object-contain opacity-80 mix-blend-screen drop-shadow-2xl"/>
                     </div>
                 </div>
 

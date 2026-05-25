@@ -10,9 +10,9 @@ function AdminSettings() {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Form States
-    const [lawyerProfile, setLawyerProfile] = useState({ name: '', bio: '', image: '' }); // For Homepage
-    const [authorProfile, setAuthorProfile] = useState({ name: '', bio: '', image: '' }); // For Blog
+    // Form States (added headerBio)
+    const [lawyerProfile, setLawyerProfile] = useState({ name: '', headerBio: '', bio: '', image: '' });
+    const [authorProfile, setAuthorProfile] = useState({ name: '', bio: '', image: '' });
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
     const [credentials, setCredentials] = useState({ currentPassword: '', newUsername: '', newPassword: '' });
@@ -29,6 +29,7 @@ function AdminSettings() {
                     if (data) {
                         setLawyerProfile({
                             name: data.lawyer_name || '',
+                            headerBio: data.header_bio || '',
                             bio: data.lawyer_bio || '',
                             image: data.lawyer_image || ''
                         });
@@ -57,6 +58,7 @@ function AdminSettings() {
 
         const payload = {
             lawyer_name: lawyerProfile.name,
+            header_bio: lawyerProfile.headerBio, // sending header bio
             lawyer_bio: lawyerProfile.bio,
             lawyer_image: lawyerProfile.image,
             author_name: authorProfile.name,
@@ -171,7 +173,11 @@ function AdminSettings() {
                         <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b pb-2">پروفایل اصلی (نمایش در صفحه اصلی - هدر و درباره من)</h2>
                         <div className="flex flex-col gap-4">
                             <InputTag label='نام وکیل / تیم حقوقی' value={lawyerProfile.name} onChange={(e) => setLawyerProfile({...lawyerProfile, name: e.target.value})} />
-                            <TextArea label='متن معرفی (درباره من)' value={lawyerProfile.bio} onChange={(e) => setLawyerProfile({...lawyerProfile, bio: e.target.value})} />
+
+                            {/* NEW: Dedicated Header Bio Input */}
+                            <TextArea label='متن معرفی کوتاه هدر (زیر عنوان اصلی صفحه)' value={lawyerProfile.headerBio} onChange={(e) => setLawyerProfile({...lawyerProfile, headerBio: e.target.value})} />
+
+                            <TextArea label='متن کامل معرفی (بخش درباره من)' value={lawyerProfile.bio} onChange={(e) => setLawyerProfile({...lawyerProfile, bio: e.target.value})} />
 
                             <div className="my-2">
                                 <ImageInput label='عکس پروفایل اصلی' onChange={(base64) => setLawyerProfile({...lawyerProfile, image: base64})} />

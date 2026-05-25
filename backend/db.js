@@ -32,6 +32,7 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS site_settings (
                                                  id INTEGER PRIMARY KEY CHECK (id = 1),
         lawyer_name TEXT DEFAULT '',
+        header_bio TEXT DEFAULT '',
         lawyer_bio TEXT DEFAULT '',
         lawyer_image TEXT,
         author_name TEXT DEFAULT '',
@@ -50,7 +51,7 @@ try {
     console.error("Settings init error:", error);
 }
 
-// Auto-Migration for Credentials and Author Profile
+// Auto-Migrations
 try {
     db.prepare("ALTER TABLE site_settings ADD COLUMN admin_username TEXT DEFAULT 'admin'").run();
     db.prepare("ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT 'password123'").run();
@@ -60,7 +61,12 @@ try {
     db.prepare("ALTER TABLE site_settings ADD COLUMN author_name TEXT DEFAULT ''").run();
     db.prepare("ALTER TABLE site_settings ADD COLUMN author_bio TEXT DEFAULT ''").run();
     db.prepare("ALTER TABLE site_settings ADD COLUMN author_image TEXT").run();
-    console.log("Migration: Added author profile to site_settings.");
 } catch (error) { /* Columns exist */ }
+
+try {
+    // NEW: Migration for header_bio
+    db.prepare("ALTER TABLE site_settings ADD COLUMN header_bio TEXT DEFAULT ''").run();
+    console.log("Migration: Added header_bio to site_settings.");
+} catch (error) { /* Column exists */ }
 
 module.exports = db;

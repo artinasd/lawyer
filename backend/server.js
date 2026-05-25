@@ -129,30 +129,30 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
     }
 });
 
-// 11. GET GLOBAL SETTINGS
+// 11. GET GLOBAL SETTINGS (Added header_bio)
 app.get('/api/settings', (req, res) => {
     try {
-        // Fetching author_* fields as well
-        const settings = db.prepare("SELECT id, lawyer_name, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
+        const settings = db.prepare("SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
         res.json(settings);
     } catch (error) {
         res.status(500).json({ message: "Error fetching settings" });
     }
 });
 
-// 12. UPDATE GLOBAL SETTINGS
+// 12. UPDATE GLOBAL SETTINGS (Added header_bio)
 app.put('/api/settings', authenticate, (req, res) => {
-    const { lawyer_name, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json } = req.body;
+    const { lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json } = req.body;
     try {
         const stmt = db.prepare(`
             UPDATE site_settings
-            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?,
+            SET lawyer_name = ?, header_bio = ?, lawyer_bio = ?, lawyer_image = ?,
                 author_name = ?, author_bio = ?, author_image = ?,
                 services_json = ?, testimonials_json = ?
             WHERE id = 1
         `);
         stmt.run(
             lawyer_name || null,
+            header_bio || null,
             lawyer_bio || null,
             lawyer_image || null,
             author_name || null,

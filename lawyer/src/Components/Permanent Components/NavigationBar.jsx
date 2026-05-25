@@ -8,6 +8,11 @@ export default function NavigationBar() {
         setIsOpen(!isOpen);
     };
 
+    // تابع اسکرول به بالا
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // می‌توانید behavior: 'auto' هم استفاده کنید
+    };
+
     return (
         <nav className="bg-white shadow-md sticky top-0 z-50" dir="rtl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,9 +27,14 @@ export default function NavigationBar() {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex space-x-8 space-x-reverse items-center">
-                        <Link to="/" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
+                        <Link
+                            to="/"
+                            onClick={scrollToTop}  // 👈 اسکرول به بالا
+                            className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors"
+                        >
                             صفحه اصلی
                         </Link>
+                        {/* بقیه لینک‌ها بدون تغییر */}
                         <a href="/#about" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
                             درباره من
                         </a>
@@ -37,7 +47,6 @@ export default function NavigationBar() {
                         <Link to="/blog" className="text-gray-700 hover:text-[#D4AF37] font-medium transition-colors">
                             مقالات حقوقی
                         </Link>
-
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -65,11 +74,15 @@ export default function NavigationBar() {
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
                         <Link
                             to="/"
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                                setIsOpen(false); // بستن منو
+                                scrollToTop();     // 👈 اسکرول به بالا
+                            }}
                             className="text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 block px-3 py-2 rounded-md font-medium text-right"
                         >
                             صفحه اصلی
                         </Link>
+                        {/* بقیه لینک‌های موبایل بدون تغییر */}
                         <a
                             href="/#about"
                             onClick={() => setIsOpen(false)}

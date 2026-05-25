@@ -11,14 +11,22 @@ app.use(cors());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-// 1. LOGIN
+// 1. LOGIN (NOW READS FROM DATABASE)
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === "admin" && password === "password123") {
-        const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-        res.json({ token });
-    } else {
-        res.status(401).json({ message: "Invalid credentials" });
+    try {
+        const settings = db.prepare("SELECT admin_username, admin_password FROM site_settings WHERE id = 1").get();
+        const validUser = settings ? settings.admin_username : "admin";
+        const validPass = settings ? settings.admin_password : "password123";
+
+        if (username === validUser && password === validPass) {
+            const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
+            res.json({ token });
+        } else {
+            res.status(401).json({ message: "Invalid credentials" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Database error" });
     }
 });
 
@@ -121,10 +129,11 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
     }
 });
 
-// 11. GET GLOBAL SETTINGS (PUBLIC)
+// 11. GET GLOBAL SETTINGS (PUBLIC - EXCLUDES PASSWORD)
 app.get('/api/settings', (req, res) => {
     try {
-        const settings = db.prepare("SELECT * FROM site_settings WHERE id = 1").get();
+        // Specifically excluding admin_password from the payload
+        const settings = db.prepare("SELECT id, lawyer_name, lawyer_bio, lawyer_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
         res.json(settings);
     } catch (error) {
         res.status(500).json({ message: "Error fetching settings" });
@@ -136,8 +145,8 @@ app.put('/api/settings', authenticate, (req, res) => {
     const { lawyer_name, lawyer_bio, lawyer_image, services_json, testimonials_json } = req.body;
     try {
         const stmt = db.prepare(`
-            UPDATE site_settings 
-            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?, services_json = ?, testimonials_json = ? 
+            UPDATE site_settings
+            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?, services_json = ?, testimonials_json = ?
             WHERE id = 1
         `);
         stmt.run(
@@ -151,6 +160,26 @@ app.put('/api/settings', authenticate, (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Failed to save settings" });
+    }
+});
+
+// 13. UPDATE ADMIN CREDENTIALS (PROTECTED)
+app.put('/api/settings/credentials', authenticate, (req, res) => {
+    const { currentPassword, newUsername, newPassword } = req.body;
+    try {
+        const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
+
+        // Security check: Must provide current password to change it
+        if (settings.admin_password !== currentPassword) {
+            return res.status(401).json({ message: "رمز عبور فعلی اشتباه است." });
+        }
+
+        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1")
+            .run(newUsername.trim(), newPassword);
+
+        res.json({ message: "Credentials updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating credentials" });
     }
 });
 

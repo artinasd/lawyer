@@ -1,5 +1,6 @@
 import React from 'react';
 import courtStuff from '../../assets/courtStuff.png'; // Make sure path is correct
+import emblem from '../../assets/classic.png'
 
 function Header() {
     return (
@@ -49,7 +50,7 @@ function Header() {
                 <div className='hidden md:flex w-full md:w-2/5 justify-end'>
                     <div className='w-full aspect-square max-w-[400px] border-4 border-white/10 rounded-full flex items-center justify-center p-4 relative backdrop-blur-sm'>
                         <div className='w-full h-full border border-[#FFCA0C]/50 rounded-full animate-[spin_20s_linear_infinite] absolute'></div>
-                        <img src={courtStuff} alt="Court Logo" className="w-2/3 object-contain opacity-80 mix-blend-screen drop-shadow-2xl"/>
+                        <img src={emblem} alt="Court Logo" className="w-2/3 object-contain opacity-80 mix-blend-screen drop-shadow-2xl scale-200"/>
                     </div>
                 </div>
 

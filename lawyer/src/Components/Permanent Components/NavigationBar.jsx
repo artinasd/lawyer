@@ -16,7 +16,7 @@ export default function NavigationBar() {
                     {/* Logo / Brand */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link to="/" className="text-2xl font-bold text-[#D4AF37]">
-                            دفتر وکالت
+                            موسسه حقوقی دکتر ابراهیم چالاکی
                         </Link>
                     </div>
 

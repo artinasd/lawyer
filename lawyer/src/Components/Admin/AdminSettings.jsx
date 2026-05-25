@@ -12,14 +12,15 @@ function AdminSettings() {
 
     // Form States
     const [lawyerProfile, setLawyerProfile] = useState({ name: '', bio: '', image: '' });
-
-    // Arrays for dynamic lists
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
 
-    // Temporary inputs for adding to lists (Added image field for real photos)
+    // Temporary inputs for lists
     const [newService, setNewService] = useState({ title: '', desc: '' });
     const [newTestimonial, setNewTestimonial] = useState({ name: '', text: '', avatar: 'male', image: '' });
+
+    // NEW: Credentials State
+    const [credentials, setCredentials] = useState({ currentPassword: '', newUsername: '', newPassword: '' });
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -35,6 +36,8 @@ function AdminSettings() {
                         });
                         setServices(JSON.parse(data.services_json || '[]'));
                         setTestimonials(JSON.parse(data.testimonials_json || '[]'));
+                        // Prefill the username so the admin sees their current one
+                        setCredentials(prev => ({ ...prev, newUsername: data.admin_username || 'admin' }));
                     }
                 }
             } catch (error) {
@@ -88,6 +91,52 @@ function AdminSettings() {
         }
     };
 
+    // NEW: Handle Credentials Update
+    const handleUpdateCredentials = async () => {
+        if (!credentials.currentPassword || !credentials.newUsername || !credentials.newPassword) {
+            return alert("تمامی فیلدهای اطلاعات ورود الزامی است.");
+        }
+
+        if (credentials.newPassword.length < 6) {
+            return alert("رمز عبور جدید باید حداقل ۶ کاراکتر باشد.");
+        }
+
+        setIsSaving(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch('http://localhost:5000/api/settings/credentials', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(credentials)
+            });
+
+            if (response.status === 401) {
+                const errorData = await response.json();
+                alert(errorData.message || "رمز عبور فعلی نامعتبر است.");
+                setIsSaving(false);
+                return;
+            }
+
+            if (response.ok) {
+                // Highly secure flow: Log the admin out after changing credentials
+                alert("اطلاعات ورود با موفقیت تغییر کرد. برای امنیت بیشتر، لطفا با اطلاعات جدید دوباره وارد شوید.");
+                localStorage.removeItem("token");
+                localStorage.removeItem("isAdmin");
+                navigate('/login');
+            } else {
+                alert("خطا در تغییر اطلاعات.");
+            }
+        } catch (error) {
+            alert("خطا در ارتباط با سرور.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const addService = () => {
         if (!newService.title.trim() || !newService.desc.trim()) return alert("عنوان و توضیحات الزامی است.");
         setServices([...services, newService]);
@@ -98,14 +147,12 @@ function AdminSettings() {
     const addTestimonial = () => {
         if (!newTestimonial.name.trim() || !newTestimonial.text.trim()) return alert("نام و متن نظر الزامی است.");
 
-        // Optional file size check (approximate 2MB limit for client photos to keep DB fast)
         if (newTestimonial.image && newTestimonial.image.length > 3000000) {
             alert("حجم عکس موکل بسیار بزرگ است. لطفا عکس کوچکتری انتخاب کنید.");
             return;
         }
 
         setTestimonials([...testimonials, newTestimonial]);
-        // Reset with default avatar and empty image
         setNewTestimonial({ name: '', text: '', avatar: 'male', image: '' });
     };
     const removeTestimonial = (index) => setTestimonials(testimonials.filter((_, i) => i !== index));
@@ -185,7 +232,6 @@ function AdminSettings() {
                             {testimonials.length > 0 ? testimonials.map((t, idx) => (
                                 <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
                                     <div className="flex items-center gap-4">
-                                        {/* Show small thumbnail if real photo exists */}
                                         {t.image ? (
                                             <img src={t.image} alt={t.name} className="w-12 h-12 object-cover rounded-full border border-gray-300 shadow-sm" />
                                         ) : (
@@ -221,12 +267,8 @@ function AdminSettings() {
                                 </select>
                             </div>
 
-                            {/* NEW: Image uploader for client photo */}
                             <div className="my-2 p-3 bg-white border border-gray-200 rounded-lg">
-                                <ImageInput
-                                    label='آپلود عکس واقعی موکل (اختیاری)'
-                                    onChange={(base64) => setNewTestimonial({...newTestimonial, image: base64})}
-                                />
+                                <ImageInput label='آپلود عکس واقعی موکل (اختیاری)' onChange={(base64) => setNewTestimonial({...newTestimonial, image: base64})} />
                                 {newTestimonial.image && (
                                     <div className="mt-3 flex items-center gap-3">
                                         <p className="text-sm text-gray-500">پیش‌نمایش:</p>
@@ -237,6 +279,56 @@ function AdminSettings() {
 
                             <textarea placeholder="متن نظر..." value={newTestimonial.text} onChange={(e) => setNewTestimonial({...newTestimonial, text: e.target.value})} className="p-3 rounded border w-full" rows="2" />
                             <button onClick={addTestimonial} className="bg-green-600 text-white py-2 px-4 rounded font-bold w-fit mt-2 hover:bg-green-700">اضافه کردن به لیست</button>
+                        </div>
+                    </div>
+
+                    {/* SECTION 4: Admin Credentials (NEW) */}
+                    <div className="bg-red-50 p-8 rounded-xl shadow-sm border border-red-200">
+                        <h2 className="text-xl font-bold text-red-700 mb-6 border-b border-red-200 pb-2">تغییر اطلاعات ورود مدیر سایت</h2>
+
+                        <div className="flex flex-col gap-4 max-w-lg">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-bold text-gray-700">رمز عبور فعلی (برای تایید هویت) *</label>
+                                <input
+                                    type="password"
+                                    placeholder="رمز فعلی خود را وارد کنید"
+                                    value={credentials.currentPassword}
+                                    onChange={(e) => setCredentials({...credentials, currentPassword: e.target.value})}
+                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-1 mt-4">
+                                <label className="text-sm font-bold text-gray-700">نام کاربری جدید *</label>
+                                <input
+                                    type="text"
+                                    placeholder="نام کاربری جدید"
+                                    value={credentials.newUsername}
+                                    onChange={(e) => setCredentials({...credentials, newUsername: e.target.value})}
+                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-bold text-gray-700">رمز عبور جدید *</label>
+                                <input
+                                    type="password"
+                                    placeholder="حداقل ۶ کاراکتر"
+                                    value={credentials.newPassword}
+                                    onChange={(e) => setCredentials({...credentials, newPassword: e.target.value})}
+                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleUpdateCredentials}
+                                disabled={isSaving}
+                                className={`mt-4 py-3 px-6 rounded-lg font-bold text-white transition-colors shadow-sm w-fit ${isSaving ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'}`}>
+                                {isSaving ? 'در حال بررسی...' : 'بروزرسانی اطلاعات ورود'}
+                            </button>
+                            <p className="text-xs text-red-600 mt-2">
+                                توجه: پس از تغییر موفقیت‌آمیز، سیستم شما را به طور خودکار از حساب خارج می‌کند تا با اطلاعات جدید وارد شوید.
+                            </p>
                         </div>
                     </div>
 

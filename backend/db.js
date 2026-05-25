@@ -28,7 +28,6 @@ db.exec(`
         )
 `);
 
-// NEW: Global Site Settings Table
 db.exec(`
     CREATE TABLE IF NOT EXISTS site_settings (
                                                  id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -36,15 +35,25 @@ db.exec(`
         lawyer_bio TEXT DEFAULT '',
         lawyer_image TEXT,
         services_json TEXT DEFAULT '[]',
-        testimonials_json TEXT DEFAULT '[]'
+        testimonials_json TEXT DEFAULT '[]',
+        admin_username TEXT DEFAULT 'admin',
+        admin_password TEXT DEFAULT 'password123'
         )
 `);
 
-// Seed initial settings row if it doesn't exist
 try {
     db.prepare("INSERT OR IGNORE INTO site_settings (id) VALUES (1)").run();
 } catch (error) {
     console.error("Settings init error:", error);
+}
+
+// Auto-Migration for Credentials
+try {
+    db.prepare("ALTER TABLE site_settings ADD COLUMN admin_username TEXT DEFAULT 'admin'").run();
+    db.prepare("ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT 'password123'").run();
+    console.log("Migration: Added admin credentials to site_settings.");
+} catch (error) {
+    // Columns already exist
 }
 
 module.exports = db;

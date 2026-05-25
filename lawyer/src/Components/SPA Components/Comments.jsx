@@ -24,7 +24,6 @@ function Comments() {
             });
     }, []);
 
-    // SMART FALLBACK
     const activeComments = settingsComments.length > 0 ? settingsComments : CommentsData;
 
     useEffect(() => {
@@ -59,17 +58,22 @@ function Comments() {
     const safeMenuState = menuState < activeComments.length ? menuState : 0;
     const currentComment = activeComments[safeMenuState] || {};
 
-    // Generate Avatar based on the CMS selection
+    // SMART AVATAR SELECTOR
     const getAvatarPic = (comment) => {
-        // Simple inline SVGs converted to Data URIs
+        // 1. If the admin uploaded a real photo, prioritize that!
+        if (comment.image && comment.image.length > 100) {
+            return comment.image;
+        }
+
+        // 2. Otherwise, use the gendered SVGs
         const maleAvatar = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234038C9'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
         const femaleAvatar = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C9388B'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
 
         if (comment.avatar === 'female') return femaleAvatar;
         if (comment.avatar === 'male') return maleAvatar;
 
-        // Fallback for hardcoded data or older comments
-        return comment.image || fallbackPic;
+        // 3. Absolute fallback
+        return fallbackPic;
     };
 
     return (
@@ -98,7 +102,6 @@ function Comments() {
                             comment={currentComment.text || currentComment.comment || ''}
                             name={currentComment.name || 'موکل ناشناس'}
                             position={currentComment.position || "موکل"}
-                            // Dynamically apply the avatar
                             picture={getAvatarPic(currentComment)}
                         />
                     </div>

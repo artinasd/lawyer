@@ -17,9 +17,9 @@ function AdminSettings() {
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
 
-    // Temporary inputs for adding to lists (Added avatar field)
+    // Temporary inputs for adding to lists (Added image field for real photos)
     const [newService, setNewService] = useState({ title: '', desc: '' });
-    const [newTestimonial, setNewTestimonial] = useState({ name: '', text: '', avatar: 'male' });
+    const [newTestimonial, setNewTestimonial] = useState({ name: '', text: '', avatar: 'male', image: '' });
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -68,7 +68,6 @@ function AdminSettings() {
                 body: JSON.stringify(payload)
             });
 
-            // Handles expired token (401) gracefully
             if (response.status === 401 || response.status === 403) {
                 alert("نشست شما منقضی شده است (توکن نامعتبر). لطفا دوباره وارد شوید.");
                 localStorage.removeItem("token");
@@ -89,18 +88,25 @@ function AdminSettings() {
         }
     };
 
-    // List Management Helpers
     const addService = () => {
         if (!newService.title.trim() || !newService.desc.trim()) return alert("عنوان و توضیحات الزامی است.");
         setServices([...services, newService]);
-        setNewService({ title: '', desc: '' }); // reset
+        setNewService({ title: '', desc: '' });
     };
     const removeService = (index) => setServices(services.filter((_, i) => i !== index));
 
     const addTestimonial = () => {
         if (!newTestimonial.name.trim() || !newTestimonial.text.trim()) return alert("نام و متن نظر الزامی است.");
+
+        // Optional file size check (approximate 2MB limit for client photos to keep DB fast)
+        if (newTestimonial.image && newTestimonial.image.length > 3000000) {
+            alert("حجم عکس موکل بسیار بزرگ است. لطفا عکس کوچکتری انتخاب کنید.");
+            return;
+        }
+
         setTestimonials([...testimonials, newTestimonial]);
-        setNewTestimonial({ name: '', text: '', avatar: 'male' }); // reset with default avatar
+        // Reset with default avatar and empty image
+        setNewTestimonial({ name: '', text: '', avatar: 'male', image: '' });
     };
     const removeTestimonial = (index) => setTestimonials(testimonials.filter((_, i) => i !== index));
 
@@ -178,15 +184,22 @@ function AdminSettings() {
                         <div className="grid gap-3 mb-6">
                             {testimonials.length > 0 ? testimonials.map((t, idx) => (
                                 <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <div>
-                                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                                            {t.name}
-                                            {/* Tag showing the selected avatar type */}
-                                            <span className="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                                                {t.avatar === 'female' ? 'خانم' : 'آقا'}
-                                            </span>
-                                        </h3>
-                                        <p className="text-sm text-gray-600 mt-1">"{t.text}"</p>
+                                    <div className="flex items-center gap-4">
+                                        {/* Show small thumbnail if real photo exists */}
+                                        {t.image ? (
+                                            <img src={t.image} alt={t.name} className="w-12 h-12 object-cover rounded-full border border-gray-300 shadow-sm" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold border border-gray-300">آواتار</div>
+                                        )}
+                                        <div>
+                                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                                {t.name}
+                                                <span className="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                                                    {t.avatar === 'female' ? 'خانم' : 'آقا'}
+                                                </span>
+                                            </h3>
+                                            <p className="text-sm text-gray-600 mt-1">"{t.text}"</p>
+                                        </div>
                                     </div>
                                     <button onClick={() => removeTestimonial(idx)} className="text-red-500 hover:text-red-700 font-bold px-3">حذف</button>
                                 </div>
@@ -196,7 +209,6 @@ function AdminSettings() {
                         <div className="bg-green-50 p-6 rounded-lg border border-green-100 flex flex-col gap-3">
                             <h4 className="font-bold text-green-800 mb-2">افزودن نظر جدید</h4>
 
-                            {/* Flex row for Name and Avatar Selection */}
                             <div className="flex gap-4">
                                 <input type="text" placeholder="نام موکل" value={newTestimonial.name} onChange={(e) => setNewTestimonial({...newTestimonial, name: e.target.value})} className="p-3 rounded border w-2/3" />
                                 <select
@@ -207,6 +219,20 @@ function AdminSettings() {
                                     <option value="male">آواتار مرد</option>
                                     <option value="female">آواتار زن</option>
                                 </select>
+                            </div>
+
+                            {/* NEW: Image uploader for client photo */}
+                            <div className="my-2 p-3 bg-white border border-gray-200 rounded-lg">
+                                <ImageInput
+                                    label='آپلود عکس واقعی موکل (اختیاری)'
+                                    onChange={(base64) => setNewTestimonial({...newTestimonial, image: base64})}
+                                />
+                                {newTestimonial.image && (
+                                    <div className="mt-3 flex items-center gap-3">
+                                        <p className="text-sm text-gray-500">پیش‌نمایش:</p>
+                                        <img src={newTestimonial.image} alt="Preview" className="w-16 h-16 object-cover rounded-full border-2 border-green-500 shadow-sm" />
+                                    </div>
+                                )}
                             </div>
 
                             <textarea placeholder="متن نظر..." value={newTestimonial.text} onChange={(e) => setNewTestimonial({...newTestimonial, text: e.target.value})} className="p-3 rounded border w-full" rows="2" />

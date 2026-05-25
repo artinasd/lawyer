@@ -11,16 +11,14 @@ function AdminSettings() {
     const [isSaving, setIsSaving] = useState(false);
 
     // Form States
-    const [lawyerProfile, setLawyerProfile] = useState({ name: '', bio: '', image: '' });
+    const [lawyerProfile, setLawyerProfile] = useState({ name: '', bio: '', image: '' }); // For Homepage
+    const [authorProfile, setAuthorProfile] = useState({ name: '', bio: '', image: '' }); // For Blog
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
+    const [credentials, setCredentials] = useState({ currentPassword: '', newUsername: '', newPassword: '' });
 
-    // Temporary inputs for lists
     const [newService, setNewService] = useState({ title: '', desc: '' });
     const [newTestimonial, setNewTestimonial] = useState({ name: '', text: '', avatar: 'male', image: '' });
-
-    // NEW: Credentials State
-    const [credentials, setCredentials] = useState({ currentPassword: '', newUsername: '', newPassword: '' });
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -34,9 +32,13 @@ function AdminSettings() {
                             bio: data.lawyer_bio || '',
                             image: data.lawyer_image || ''
                         });
+                        setAuthorProfile({
+                            name: data.author_name || '',
+                            bio: data.author_bio || '',
+                            image: data.author_image || ''
+                        });
                         setServices(JSON.parse(data.services_json || '[]'));
                         setTestimonials(JSON.parse(data.testimonials_json || '[]'));
-                        // Prefill the username so the admin sees their current one
                         setCredentials(prev => ({ ...prev, newUsername: data.admin_username || 'admin' }));
                     }
                 }
@@ -57,6 +59,9 @@ function AdminSettings() {
             lawyer_name: lawyerProfile.name,
             lawyer_bio: lawyerProfile.bio,
             lawyer_image: lawyerProfile.image,
+            author_name: authorProfile.name,
+            author_bio: authorProfile.bio,
+            author_image: authorProfile.image,
             services_json: JSON.stringify(services),
             testimonials_json: JSON.stringify(testimonials)
         };
@@ -91,15 +96,9 @@ function AdminSettings() {
         }
     };
 
-    // NEW: Handle Credentials Update
     const handleUpdateCredentials = async () => {
-        if (!credentials.currentPassword || !credentials.newUsername || !credentials.newPassword) {
-            return alert("تمامی فیلدهای اطلاعات ورود الزامی است.");
-        }
-
-        if (credentials.newPassword.length < 6) {
-            return alert("رمز عبور جدید باید حداقل ۶ کاراکتر باشد.");
-        }
+        if (!credentials.currentPassword || !credentials.newUsername || !credentials.newPassword) return alert("تمامی فیلدهای اطلاعات ورود الزامی است.");
+        if (credentials.newPassword.length < 6) return alert("رمز عبور جدید باید حداقل ۶ کاراکتر باشد.");
 
         setIsSaving(true);
         const token = localStorage.getItem("token");
@@ -107,10 +106,7 @@ function AdminSettings() {
         try {
             const response = await fetch('http://localhost:5000/api/settings/credentials', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(credentials)
             });
 
@@ -122,8 +118,7 @@ function AdminSettings() {
             }
 
             if (response.ok) {
-                // Highly secure flow: Log the admin out after changing credentials
-                alert("اطلاعات ورود با موفقیت تغییر کرد. برای امنیت بیشتر، لطفا با اطلاعات جدید دوباره وارد شوید.");
+                alert("اطلاعات ورود تغییر کرد. لطفا با اطلاعات جدید وارد شوید.");
                 localStorage.removeItem("token");
                 localStorage.removeItem("isAdmin");
                 navigate('/login');
@@ -146,12 +141,7 @@ function AdminSettings() {
 
     const addTestimonial = () => {
         if (!newTestimonial.name.trim() || !newTestimonial.text.trim()) return alert("نام و متن نظر الزامی است.");
-
-        if (newTestimonial.image && newTestimonial.image.length > 3000000) {
-            alert("حجم عکس موکل بسیار بزرگ است. لطفا عکس کوچکتری انتخاب کنید.");
-            return;
-        }
-
+        if (newTestimonial.image && newTestimonial.image.length > 3000000) return alert("حجم عکس موکل بسیار بزرگ است. لطفا عکس کوچکتری انتخاب کنید.");
         setTestimonials([...testimonials, newTestimonial]);
         setNewTestimonial({ name: '', text: '', avatar: 'male', image: '' });
     };
@@ -165,15 +155,10 @@ function AdminSettings() {
                 <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
                     <h1 className='text-3xl font-bold text-gray-800'>تنظیمات کلان وب‌سایت</h1>
                     <div className="flex gap-3">
-                        <button
-                            onClick={handleSaveAll}
-                            disabled={isSaving}
-                            className={`px-6 py-2 rounded-lg font-bold text-white transition-colors shadow-sm ${isSaving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'}`}>
+                        <button onClick={handleSaveAll} disabled={isSaving} className={`px-6 py-2 rounded-lg font-bold text-white transition-colors shadow-sm ${isSaving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'}`}>
                             {isSaving ? 'در حال ذخیره...' : 'ذخیره کل تنظیمات'}
                         </button>
-                        <button
-                            onClick={() => navigate('/admin')}
-                            className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors border border-gray-300">
+                        <button onClick={() => navigate('/admin')} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors border border-gray-300">
                             بازگشت
                         </button>
                     </div>
@@ -181,19 +166,38 @@ function AdminSettings() {
 
                 <div className="flex flex-col gap-8">
 
-                    {/* SECTION 1: Lawyer Profile */}
+                    {/* SECTION 1A: Lawyer Profile (Homepage) */}
                     <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-                        <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b pb-2">پروفایل وکیل (نمایش در درباره ما و مقالات)</h2>
+                        <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b pb-2">پروفایل اصلی (نمایش در صفحه اصلی - هدر و درباره من)</h2>
                         <div className="flex flex-col gap-4">
                             <InputTag label='نام وکیل / تیم حقوقی' value={lawyerProfile.name} onChange={(e) => setLawyerProfile({...lawyerProfile, name: e.target.value})} />
-                            <TextArea label='بیوگرافی کوتاه (رزومه)' value={lawyerProfile.bio} onChange={(e) => setLawyerProfile({...lawyerProfile, bio: e.target.value})} />
+                            <TextArea label='متن معرفی (درباره من)' value={lawyerProfile.bio} onChange={(e) => setLawyerProfile({...lawyerProfile, bio: e.target.value})} />
 
                             <div className="my-2">
-                                <ImageInput label='عکس پروفایل (آپلود تصویر جدید)' onChange={(base64) => setLawyerProfile({...lawyerProfile, image: base64})} />
+                                <ImageInput label='عکس پروفایل اصلی' onChange={(base64) => setLawyerProfile({...lawyerProfile, image: base64})} />
                                 {lawyerProfile.image && (
-                                    <div className="mt-4">
-                                        <p className="text-sm text-gray-500 mb-2">تصویر فعلی:</p>
-                                        <img src={lawyerProfile.image} alt="Profile" className="w-24 h-24 object-cover rounded-full border-4 border-gray-100 shadow-sm" />
+                                    <div className="mt-4 flex items-center gap-4">
+                                        <p className="text-sm text-gray-500">تصویر فعلی:</p>
+                                        <img src={lawyerProfile.image} alt="Profile" className="w-24 h-24 object-cover rounded-xl border-2 border-gray-100 shadow-sm" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION 1B: Author Profile (Blog Sidebar) */}
+                    <div className="bg-indigo-50 p-8 rounded-xl shadow-sm border border-indigo-100">
+                        <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b border-indigo-200 pb-2">پروفایل نویسنده (نمایش در سایدبار مقالات)</h2>
+                        <div className="flex flex-col gap-4">
+                            <InputTag label='نام نویسنده' value={authorProfile.name} onChange={(e) => setAuthorProfile({...authorProfile, name: e.target.value})} />
+                            <TextArea label='بیوگرافی کوتاه نویسنده (رزومه)' value={authorProfile.bio} onChange={(e) => setAuthorProfile({...authorProfile, bio: e.target.value})} />
+
+                            <div className="my-2">
+                                <ImageInput label='عکس نویسنده' onChange={(base64) => setAuthorProfile({...authorProfile, image: base64})} />
+                                {authorProfile.image && (
+                                    <div className="mt-4 flex items-center gap-4">
+                                        <p className="text-sm text-gray-500">تصویر فعلی:</p>
+                                        <img src={authorProfile.image} alt="Author" className="w-20 h-20 object-cover rounded-full border-4 border-white shadow-sm" />
                                     </div>
                                 )}
                             </div>
@@ -282,53 +286,26 @@ function AdminSettings() {
                         </div>
                     </div>
 
-                    {/* SECTION 4: Admin Credentials (NEW) */}
+                    {/* SECTION 4: Admin Credentials */}
                     <div className="bg-red-50 p-8 rounded-xl shadow-sm border border-red-200">
                         <h2 className="text-xl font-bold text-red-700 mb-6 border-b border-red-200 pb-2">تغییر اطلاعات ورود مدیر سایت</h2>
 
                         <div className="flex flex-col gap-4 max-w-lg">
                             <div className="flex flex-col gap-1">
                                 <label className="text-sm font-bold text-gray-700">رمز عبور فعلی (برای تایید هویت) *</label>
-                                <input
-                                    type="password"
-                                    placeholder="رمز فعلی خود را وارد کنید"
-                                    value={credentials.currentPassword}
-                                    onChange={(e) => setCredentials({...credentials, currentPassword: e.target.value})}
-                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
-                                />
+                                <input type="password" placeholder="رمز فعلی خود را وارد کنید" value={credentials.currentPassword} onChange={(e) => setCredentials({...credentials, currentPassword: e.target.value})} className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full" />
                             </div>
-
                             <div className="flex flex-col gap-1 mt-4">
                                 <label className="text-sm font-bold text-gray-700">نام کاربری جدید *</label>
-                                <input
-                                    type="text"
-                                    placeholder="نام کاربری جدید"
-                                    value={credentials.newUsername}
-                                    onChange={(e) => setCredentials({...credentials, newUsername: e.target.value})}
-                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
-                                />
+                                <input type="text" placeholder="نام کاربری جدید" value={credentials.newUsername} onChange={(e) => setCredentials({...credentials, newUsername: e.target.value})} className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full" />
                             </div>
-
                             <div className="flex flex-col gap-1">
                                 <label className="text-sm font-bold text-gray-700">رمز عبور جدید *</label>
-                                <input
-                                    type="password"
-                                    placeholder="حداقل ۶ کاراکتر"
-                                    value={credentials.newPassword}
-                                    onChange={(e) => setCredentials({...credentials, newPassword: e.target.value})}
-                                    className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full"
-                                />
+                                <input type="password" placeholder="حداقل ۶ کاراکتر" value={credentials.newPassword} onChange={(e) => setCredentials({...credentials, newPassword: e.target.value})} className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none w-full" />
                             </div>
-
-                            <button
-                                onClick={handleUpdateCredentials}
-                                disabled={isSaving}
-                                className={`mt-4 py-3 px-6 rounded-lg font-bold text-white transition-colors shadow-sm w-fit ${isSaving ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'}`}>
+                            <button onClick={handleUpdateCredentials} disabled={isSaving} className={`mt-4 py-3 px-6 rounded-lg font-bold text-white transition-colors shadow-sm w-fit ${isSaving ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'}`}>
                                 {isSaving ? 'در حال بررسی...' : 'بروزرسانی اطلاعات ورود'}
                             </button>
-                            <p className="text-xs text-red-600 mt-2">
-                                توجه: پس از تغییر موفقیت‌آمیز، سیستم شما را به طور خودکار از حساب خارج می‌کند تا با اطلاعات جدید وارد شوید.
-                            </p>
                         </div>
                     </div>
 

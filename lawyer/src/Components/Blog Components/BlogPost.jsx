@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import loadingGif from '../../assets/loadingGif.gif';
-import fallbackAuthorPic from '../../assets/person1.jpg'; // Fallback if no picture is set in settings
+import fallbackAuthorPic from '../../assets/person1.jpg';
 
 export default function BlogPost() {
     const { postId } = useParams();
     const [post, setPost] = useState(null);
     const [recentPosts, setRecentPosts] = useState([]);
-    const [siteSettings, setSiteSettings] = useState(null); // NEW: State for global settings
+    const [siteSettings, setSiteSettings] = useState(null);
 
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState({ name: '', content: '' });
@@ -21,7 +21,7 @@ export default function BlogPost() {
 
         const fetchPostData = async () => {
             try {
-                // Fetch Global Settings for the author bio
+                // Fetch Global Settings
                 const settingsRes = await fetch('http://localhost:5000/api/settings');
                 if (settingsRes.ok) {
                     setSiteSettings(await settingsRes.json());
@@ -93,10 +93,10 @@ export default function BlogPost() {
         return <div className="flex justify-center items-center min-h-screen rtl"><h2 className="text-2xl font-bold text-gray-700">مقاله مورد نظر یافت نشد.</h2></div>;
     }
 
-    // Determine what to show for the author sidebar
-    const displayAuthorName = siteSettings?.lawyer_name || post.author || 'تیم حقوقی';
-    const displayAuthorPic = siteSettings?.lawyer_image || fallbackAuthorPic;
-    const displayAuthorBio = siteSettings?.lawyer_bio || 'وکیل پایه یک دادگستری و مشاور حقوقی با سال‌ها تجربه در ارائه راهکارهای تخصصی در پرونده‌های کیفری، حقوقی و خانواده.';
+    // CHANGED: Now using author_name, author_image, and author_bio!
+    const displayAuthorName = siteSettings?.author_name || post.author || 'تیم حقوقی';
+    const displayAuthorPic = siteSettings?.author_image || fallbackAuthorPic;
+    const displayAuthorBio = siteSettings?.author_bio || 'وکیل پایه یک دادگستری و مشاور حقوقی با سال‌ها تجربه در ارائه راهکارهای تخصصی در پرونده‌های کیفری، حقوقی و خانواده.';
 
     return (
         <div className="max-w-7xl mx-auto p-4 flex flex-col md:flex-row gap-8 mt-10 mb-24" dir="rtl">
@@ -167,7 +167,7 @@ export default function BlogPost() {
                         <img src={displayAuthorPic} alt={displayAuthorName} className="w-full h-full object-cover" />
                     </div>
                     <h3 className="font-bold text-lg text-gray-900 mb-2">{displayAuthorName}</h3>
-                    <p className="text-gray-500 text-sm leading-relaxed">{displayAuthorBio}</p>
+                    <p className="text-gray-500 text-sm leading-relaxed whitespace-pre-wrap">{displayAuthorBio}</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">

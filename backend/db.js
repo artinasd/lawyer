@@ -34,6 +34,9 @@ db.exec(`
         lawyer_name TEXT DEFAULT '',
         lawyer_bio TEXT DEFAULT '',
         lawyer_image TEXT,
+        author_name TEXT DEFAULT '',
+        author_bio TEXT DEFAULT '',
+        author_image TEXT,
         services_json TEXT DEFAULT '[]',
         testimonials_json TEXT DEFAULT '[]',
         admin_username TEXT DEFAULT 'admin',
@@ -47,13 +50,17 @@ try {
     console.error("Settings init error:", error);
 }
 
-// Auto-Migration for Credentials
+// Auto-Migration for Credentials and Author Profile
 try {
     db.prepare("ALTER TABLE site_settings ADD COLUMN admin_username TEXT DEFAULT 'admin'").run();
     db.prepare("ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT 'password123'").run();
-    console.log("Migration: Added admin credentials to site_settings.");
-} catch (error) {
-    // Columns already exist
-}
+} catch (error) { /* Columns exist */ }
+
+try {
+    db.prepare("ALTER TABLE site_settings ADD COLUMN author_name TEXT DEFAULT ''").run();
+    db.prepare("ALTER TABLE site_settings ADD COLUMN author_bio TEXT DEFAULT ''").run();
+    db.prepare("ALTER TABLE site_settings ADD COLUMN author_image TEXT").run();
+    console.log("Migration: Added author profile to site_settings.");
+} catch (error) { /* Columns exist */ }
 
 module.exports = db;

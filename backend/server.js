@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-// 1. LOGIN (NOW READS FROM DATABASE)
+// 1. LOGIN
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     try {
@@ -64,7 +64,7 @@ app.post('/api/posts', authenticate, (req, res) => {
     }
 });
 
-// 5. GET APPROVED COMMENTS (PUBLIC)
+// 5. GET APPROVED COMMENTS
 app.get('/api/posts/:id/comments', (req, res) => {
     try {
         const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(req.params.id);
@@ -74,7 +74,7 @@ app.get('/api/posts/:id/comments', (req, res) => {
     }
 });
 
-// 6. ADD COMMENT (PUBLIC)
+// 6. ADD COMMENT
 app.post('/api/posts/:id/comments', (req, res) => {
     const { name, content } = req.body;
     try {
@@ -86,7 +86,7 @@ app.post('/api/posts/:id/comments', (req, res) => {
     }
 });
 
-// 7. GET ALL COMMENTS (ADMIN)
+// 7. GET ALL COMMENTS
 app.get('/api/admin/comments', authenticate, (req, res) => {
     try {
         const comments = db.prepare(`SELECT c.*, p.title as post_title FROM comments c JOIN posts p ON c.post_id = p.id ORDER BY c.created_at DESC`).all();
@@ -129,30 +129,35 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
     }
 });
 
-// 11. GET GLOBAL SETTINGS (PUBLIC - EXCLUDES PASSWORD)
+// 11. GET GLOBAL SETTINGS
 app.get('/api/settings', (req, res) => {
     try {
-        // Specifically excluding admin_password from the payload
-        const settings = db.prepare("SELECT id, lawyer_name, lawyer_bio, lawyer_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
+        // Fetching author_* fields as well
+        const settings = db.prepare("SELECT id, lawyer_name, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
         res.json(settings);
     } catch (error) {
         res.status(500).json({ message: "Error fetching settings" });
     }
 });
 
-// 12. UPDATE GLOBAL SETTINGS (PROTECTED)
+// 12. UPDATE GLOBAL SETTINGS
 app.put('/api/settings', authenticate, (req, res) => {
-    const { lawyer_name, lawyer_bio, lawyer_image, services_json, testimonials_json } = req.body;
+    const { lawyer_name, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json } = req.body;
     try {
         const stmt = db.prepare(`
             UPDATE site_settings
-            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?, services_json = ?, testimonials_json = ?
+            SET lawyer_name = ?, lawyer_bio = ?, lawyer_image = ?,
+                author_name = ?, author_bio = ?, author_image = ?,
+                services_json = ?, testimonials_json = ?
             WHERE id = 1
         `);
         stmt.run(
             lawyer_name || null,
             lawyer_bio || null,
             lawyer_image || null,
+            author_name || null,
+            author_bio || null,
+            author_image || null,
             services_json || '[]',
             testimonials_json || '[]'
         );
@@ -163,20 +168,15 @@ app.put('/api/settings', authenticate, (req, res) => {
     }
 });
 
-// 13. UPDATE ADMIN CREDENTIALS (PROTECTED)
+// 13. UPDATE ADMIN CREDENTIALS
 app.put('/api/settings/credentials', authenticate, (req, res) => {
     const { currentPassword, newUsername, newPassword } = req.body;
     try {
         const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
-
-        // Security check: Must provide current password to change it
         if (settings.admin_password !== currentPassword) {
             return res.status(401).json({ message: "رمز عبور فعلی اشتباه است." });
         }
-
-        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1")
-            .run(newUsername.trim(), newPassword);
-
+        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1").run(newUsername.trim(), newPassword);
         res.json({ message: "Credentials updated successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error updating credentials" });

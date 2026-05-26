@@ -2,6 +2,31 @@
 import React, { useEffect, useState } from 'react';
 import ThreeElementCard from "../Costume UI Components/ThreeElementCard.jsx";
 
+// --- MUI Icons for Services ---
+import BalanceIcon from '@mui/icons-material/Balance';
+import GavelIcon from '@mui/icons-material/Gavel';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import HandshakeIcon from '@mui/icons-material/Handshake';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import SecurityIcon from '@mui/icons-material/Security';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
+
+const AVAILABLE_ICONS = {
+    Balance: BalanceIcon,
+    Gavel: GavelIcon,
+    AccountBalance: AccountBalanceIcon,
+    MenuBook: MenuBookIcon,
+    FamilyRestroom: FamilyRestroomIcon,
+    BusinessCenter: BusinessCenterIcon,
+    Handshake: HandshakeIcon,
+    Assignment: AssignmentIcon,
+    Security: SecurityIcon,
+    HomeWork: HomeWorkIcon
+};
+
 function Services() {
     const [settingsServices, setSettingsServices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,6 +45,7 @@ function Services() {
             });
     }, []);
 
+    // A fallback pure SVG just in case something breaks
     const defaultLegalIcon = (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
@@ -50,17 +76,22 @@ function Services() {
                 </div>
 
                 <ul className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-                    {settingsServices.map((each, index) => (
-                        <li key={index} className="group hover:-translate-y-2 transition-transform duration-300 ease-out h-full">
-                            <div className="h-full bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 transition-shadow duration-300 overflow-hidden">
-                                <ThreeElementCard title={each.title} description={each.desc || each.description || ''}>
-                                    <div className="text-[#4038C9] group-hover:scale-110 transition-transform duration-300">
-                                        {defaultLegalIcon}
-                                    </div>
-                                </ThreeElementCard>
-                            </div>
-                        </li>
-                    ))}
+                    {settingsServices.map((each, index) => {
+                        // Dynamically resolve the selected icon from the dictionary
+                        const SelectedIcon = AVAILABLE_ICONS[each.icon];
+
+                        return (
+                            <li key={index} className="group hover:-translate-y-2 transition-transform duration-300 ease-out h-full">
+                                <div className="h-full bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 transition-shadow duration-300 overflow-hidden">
+                                    <ThreeElementCard title={each.title} description={each.desc || each.description || ''}>
+                                        <div className="text-[#4038C9] group-hover:scale-110 transition-transform duration-300">
+                                            {SelectedIcon ? <SelectedIcon sx={{ fontSize: 48 }} /> : defaultLegalIcon}
+                                        </div>
+                                    </ThreeElementCard>
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
 
             </div>

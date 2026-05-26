@@ -5,19 +5,45 @@ import InputTag from "../Costume UI Components/InputTag.jsx";
 import TextArea from "../Costume UI Components/TextArea.jsx";
 import ImageInput from "../Costume UI Components/ImageInput.jsx";
 
+// --- MUI Icons for Services ---
+import BalanceIcon from '@mui/icons-material/Balance';
+import GavelIcon from '@mui/icons-material/Gavel';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import HandshakeIcon from '@mui/icons-material/Handshake';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import SecurityIcon from '@mui/icons-material/Security';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
+
+const AVAILABLE_ICONS = {
+    Balance: BalanceIcon,
+    Gavel: GavelIcon,
+    AccountBalance: AccountBalanceIcon,
+    MenuBook: MenuBookIcon,
+    FamilyRestroom: FamilyRestroomIcon,
+    BusinessCenter: BusinessCenterIcon,
+    Handshake: HandshakeIcon,
+    Assignment: AssignmentIcon,
+    Security: SecurityIcon,
+    HomeWork: HomeWorkIcon
+};
+
 function AdminSettings() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Form States (added headerBio)
+    // Form States
     const [lawyerProfile, setLawyerProfile] = useState({ name: '', headerBio: '', bio: '', image: '' });
     const [authorProfile, setAuthorProfile] = useState({ name: '', bio: '', image: '' });
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
     const [credentials, setCredentials] = useState({ currentPassword: '', newUsername: '', newPassword: '' });
 
-    const [newService, setNewService] = useState({ title: '', desc: '' });
+    // Added 'icon' field to newService
+    const [newService, setNewService] = useState({ title: '', desc: '', icon: 'Balance' });
     const [newTestimonial, setNewTestimonial] = useState({ name: '', text: '', avatar: 'male', image: '' });
 
     useEffect(() => {
@@ -58,7 +84,7 @@ function AdminSettings() {
 
         const payload = {
             lawyer_name: lawyerProfile.name,
-            header_bio: lawyerProfile.headerBio, // sending header bio
+            header_bio: lawyerProfile.headerBio,
             lawyer_bio: lawyerProfile.bio,
             lawyer_image: lawyerProfile.image,
             author_name: authorProfile.name,
@@ -137,7 +163,7 @@ function AdminSettings() {
     const addService = () => {
         if (!newService.title.trim() || !newService.desc.trim()) return alert("عنوان و توضیحات الزامی است.");
         setServices([...services, newService]);
-        setNewService({ title: '', desc: '' });
+        setNewService({ title: '', desc: '', icon: 'Balance' }); // Reset with default icon
     };
     const removeService = (index) => setServices(services.filter((_, i) => i !== index));
 
@@ -168,15 +194,12 @@ function AdminSettings() {
 
                 <div className="flex flex-col gap-8">
 
-                    {/* SECTION 1A: Lawyer Profile (Homepage) */}
+                    {/* SECTION 1A: Lawyer Profile */}
                     <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
                         <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b pb-2">پروفایل اصلی (نمایش در صفحه اصلی - هدر و درباره من)</h2>
                         <div className="flex flex-col gap-4">
                             <InputTag label='نام وکیل / تیم حقوقی' value={lawyerProfile.name} onChange={(e) => setLawyerProfile({...lawyerProfile, name: e.target.value})} />
-
-                            {/* NEW: Dedicated Header Bio Input */}
                             <TextArea label='متن معرفی کوتاه هدر (زیر عنوان اصلی صفحه)' value={lawyerProfile.headerBio} onChange={(e) => setLawyerProfile({...lawyerProfile, headerBio: e.target.value})} />
-
                             <TextArea label='متن کامل معرفی (بخش درباره من)' value={lawyerProfile.bio} onChange={(e) => setLawyerProfile({...lawyerProfile, bio: e.target.value})} />
 
                             <div className="my-2">
@@ -191,7 +214,7 @@ function AdminSettings() {
                         </div>
                     </div>
 
-                    {/* SECTION 1B: Author Profile (Blog Sidebar) */}
+                    {/* SECTION 1B: Author Profile */}
                     <div className="bg-indigo-50 p-8 rounded-xl shadow-sm border border-indigo-100">
                         <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b border-indigo-200 pb-2">پروفایل نویسنده (نمایش در سایدبار مقالات)</h2>
                         <div className="flex flex-col gap-4">
@@ -215,22 +238,49 @@ function AdminSettings() {
                         <h2 className="text-xl font-bold text-[#4038C9] mb-6 border-b pb-2">خدمات حقوقی (نمایش در صفحه اصلی)</h2>
 
                         <div className="grid gap-3 mb-6">
-                            {services.length > 0 ? services.map((srv, idx) => (
-                                <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <div>
-                                        <h3 className="font-bold text-gray-800">{srv.title}</h3>
-                                        <p className="text-sm text-gray-600 mt-1">{srv.desc}</p>
+                            {services.length > 0 ? services.map((srv, idx) => {
+                                const IconComponent = AVAILABLE_ICONS[srv.icon] || AVAILABLE_ICONS.Balance;
+                                return (
+                                    <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-[#4038C9]">
+                                                <IconComponent fontSize="large" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-800">{srv.title}</h3>
+                                                <p className="text-sm text-gray-600 mt-1">{srv.desc}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => removeService(idx)} className="text-red-500 hover:text-red-700 font-bold px-3">حذف</button>
                                     </div>
-                                    <button onClick={() => removeService(idx)} className="text-red-500 hover:text-red-700 font-bold px-3">حذف</button>
-                                </div>
-                            )) : <p className="text-gray-500 text-sm">هیچ خدمتی ثبت نشده است.</p>}
+                                );
+                            }) : <p className="text-gray-500 text-sm">هیچ خدمتی ثبت نشده است.</p>}
                         </div>
 
                         <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 flex flex-col gap-3">
                             <h4 className="font-bold text-blue-800 mb-2">افزودن خدمت جدید</h4>
+
                             <input type="text" placeholder="عنوان خدمت (مثال: مشاوره خانواده)" value={newService.title} onChange={(e) => setNewService({...newService, title: e.target.value})} className="p-3 rounded border w-full" />
                             <textarea placeholder="توضیحات خدمت..." value={newService.desc} onChange={(e) => setNewService({...newService, desc: e.target.value})} className="p-3 rounded border w-full" rows="2" />
-                            <button onClick={addService} className="bg-blue-600 text-white py-2 px-4 rounded font-bold w-fit mt-2 hover:bg-blue-700">اضافه کردن به لیست</button>
+
+                            {/* NEW: ICON SELECTOR */}
+                            <div className="mt-2">
+                                <label className="text-sm font-bold text-blue-800 mb-2 block">آیکون مرتبط را انتخاب کنید:</label>
+                                <div className="flex flex-wrap gap-3">
+                                    {Object.entries(AVAILABLE_ICONS).map(([key, IconCmp]) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => setNewService({...newService, icon: key})}
+                                            className={`p-3 rounded-lg flex items-center justify-center transition-all ${newService.icon === key ? 'bg-[#4038C9] text-white shadow-md scale-110' : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                                            title={key}
+                                        >
+                                            <IconCmp />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button onClick={addService} className="bg-blue-600 text-white py-2 px-4 rounded font-bold w-fit mt-4 hover:bg-blue-700">اضافه کردن به لیست</button>
                         </div>
                     </div>
 

@@ -8,7 +8,14 @@ const db = require('./db'); // Now exports the MySQL promise pool
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = process.env.JWT_SECRET || "fallback_secret_do_not_use_in_prod";
+
+// SECURITY FIX: Enforce JWT_SECRET in production to prevent compromises
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY && process.env.NODE_ENV === 'production') {
+    console.error("FATAL ERROR: JWT_SECRET environment variable is not defined.");
+    process.exit(1);
+}
+const safeSecretKey = SECRET_KEY || "fallback_secret_do_not_use_in_prod";
 
 const corsOptions = {
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -16,7 +23,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// 20mb limit to handle Base64 images
+// 20mb limit to handle Base64 images (Will be removed in future steps when using Supabase)
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
@@ -32,7 +39,7 @@ app.post('/api/login', async (req, res) => {
             const passwordMatch = await bcrypt.compare(password, settings.admin_password);
 
             if (passwordMatch) {
-                const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '4h' });
+                const token = jwt.sign({ username }, safeSecretKey, { expiresIn: '4h' });
                 return res.json({ token });
             }
         }
@@ -50,7 +57,7 @@ const authenticate = (req, res, next) => {
     if (!token || !token.startsWith('Bearer ')) return res.status(403).json({ message: "No token" });
 
     const bearerToken = token.split(' ')[1];
-    jwt.verify(bearerToken, SECRET_KEY, (err, decoded) => {
+    jwt.verify(bearerToken, safeSecretKey, (err, decoded) => {
         if (err) return res.status(401).json({ message: "Unauthorized" });
         req.user = decoded;
         next();
@@ -116,8 +123,8 @@ app.post('/api/posts/:id/comments', async (req, res) => {
 app.get('/api/admin/comments', authenticate, async (req, res) => {
     try {
         const [comments] = await db.query(`
-            SELECT c.*, p.title as post_title 
-            FROM comments c JOIN posts p ON c.post_id = p.id 
+            SELECT c.*, p.title as post_title
+            FROM comments c JOIN posts p ON c.post_id = p.id
             ORDER BY c.created_at DESC
         `);
         res.json(comments);
@@ -171,9 +178,9 @@ app.put('/api/posts/:id', authenticate, async (req, res) => {
 app.get('/api/settings', async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, 
-                   author_name, author_bio, author_image, services_json, 
-                   testimonials_json, admin_username 
+            SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image,
+                   author_name, author_bio, author_image, services_json,
+                   testimonials_json, admin_username
             FROM site_settings WHERE id = 1
         `);
         res.json(rows[0] || {});

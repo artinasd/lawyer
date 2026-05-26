@@ -129,7 +129,7 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
     }
 });
 
-// 11. GET GLOBAL SETTINGS (Added header_bio)
+// 11. GET GLOBAL SETTINGS
 app.get('/api/settings', (req, res) => {
     try {
         const settings = db.prepare("SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
@@ -139,7 +139,7 @@ app.get('/api/settings', (req, res) => {
     }
 });
 
-// 12. UPDATE GLOBAL SETTINGS (Added header_bio)
+// 12. UPDATE GLOBAL SETTINGS
 app.put('/api/settings', authenticate, (req, res) => {
     const { lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json } = req.body;
     try {
@@ -180,6 +180,53 @@ app.put('/api/settings/credentials', authenticate, (req, res) => {
         res.json({ message: "Credentials updated successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error updating credentials" });
+    }
+});
+
+// ---------------------------
+// NEW: CONTACT MESSAGES
+// ---------------------------
+
+// 14. GET ALL MESSAGES (Admin Only)
+app.get('/api/admin/messages', authenticate, (req, res) => {
+    try {
+        const messages = db.prepare("SELECT * FROM messages ORDER BY created_at DESC").all();
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching messages" });
+    }
+});
+
+// 15. ADD NEW MESSAGE (Public)
+app.post('/api/messages', (req, res) => {
+    const { name, email, phone, subject, content } = req.body;
+    try {
+        const stmt = db.prepare("INSERT INTO messages (name, email, phone, subject, content) VALUES (?, ?, ?, ?, ?)");
+        stmt.run(name?.trim() || 'ناشناس', email?.trim() || null, phone?.trim() || null, subject?.trim() || null, content?.trim() || '');
+        res.status(201).json({ message: "Message sent successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to save message." });
+    }
+});
+
+// 16. DELETE MESSAGE (Admin Only)
+app.delete('/api/admin/messages/:id', authenticate, (req, res) => {
+    try {
+        db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
+        res.json({ message: "Message deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting message" });
+    }
+});
+
+// 17. TOGGLE READ STATUS (Admin Only)
+app.put('/api/admin/messages/:id/read', authenticate, (req, res) => {
+    try {
+        const { is_read } = req.body;
+        db.prepare("UPDATE messages SET is_read = ? WHERE id = ?").run(is_read ? 1 : 0, req.params.id);
+        res.json({ message: "Message status updated" });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating message status" });
     }
 });
 

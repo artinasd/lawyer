@@ -8,7 +8,8 @@ import AdminLogin from "./Components/Admin/AdminLogin.jsx";
 import NewPost from "./Components/Admin/NewPost.jsx";
 import AllPosts from "./Components/Admin/AllPosts.jsx";
 import AdminComments from "./Components/Admin/AdminComments.jsx";
-import AdminSettings from "./Components/Admin/AdminSettings.jsx"; // New Import
+import AdminSettings from "./Components/Admin/AdminSettings.jsx";
+import AdminMessages from "./Components/Admin/AdminMessages.jsx"; // NEW Import
 import NavigationBar from "./Components/Permanent Components/NavigationBar.jsx";
 import Footer from "./Components/SPA Components/Footer.jsx";
 
@@ -45,7 +46,8 @@ function App() {
                 { path: '/admin/new-post', element: <AuthGuard><NewPost /></AuthGuard> },
                 { path: '/admin/all-posts', element: <AuthGuard><AllPosts /></AuthGuard> },
                 { path: '/admin/comments', element: <AuthGuard><AdminComments /></AuthGuard> },
-                { path: '/admin/settings', element: <AuthGuard><AdminSettings /></AuthGuard> }, // New Route
+                { path: '/admin/settings', element: <AuthGuard><AdminSettings /></AuthGuard> },
+                { path: '/admin/messages', element: <AuthGuard><AdminMessages /></AuthGuard> }, // NEW Route
             ]
         }
     ]);

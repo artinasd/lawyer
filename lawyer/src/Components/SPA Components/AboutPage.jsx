@@ -67,12 +67,13 @@ function AboutPage() {
                             <TwoElementCard icon={medalIcon} text="۱۵+ سال تجربه"/>
                         </div>
 
-                        <button className='group flex items-center gap-2 bg-[#4038C9] hover:bg-[#2C2699] text-white font-medium px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1'>
+                        {/* Changed button to an anchor tag for SPA navigation */}
+                        <a href="/#contact" className='group flex items-center gap-2 bg-[#4038C9] hover:bg-[#2C2699] text-white font-medium px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1'>
                             <span>ارتباط مستقیم با من</span>
                             <svg className="w-5 h-5 transform rotate-180 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                             </svg>
-                        </button>
+                        </a>
                     </div>
 
                 </div>

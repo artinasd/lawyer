@@ -1,8 +1,6 @@
 // lawyer/src/Components/SPA Components/Services.jsx
 import React, { useEffect, useState } from 'react';
 import ThreeElementCard from "../Costume UI Components/ThreeElementCard.jsx";
-import { ServicesData } from "../HardCodedData/ServicesData.js";
-import { ServicesIcons } from "../HardCodedData/ServicesIcons.jsx";
 
 function Services() {
     const [settingsServices, setSettingsServices] = useState([]);
@@ -30,8 +28,8 @@ function Services() {
 
     if (loading) return null;
 
-    // SMART FALLBACK: If CMS is empty, use the hardcoded demo data
-    const activeServices = settingsServices.length > 0 ? settingsServices : ServicesData;
+    // If the database is empty, hide the section until the admin adds services
+    if (settingsServices.length === 0) return null;
 
     return (
         <section className='relative bg-[#F9FAFB] w-full py-24 overflow-hidden rtl'>
@@ -52,12 +50,12 @@ function Services() {
                 </div>
 
                 <ul className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-                    {activeServices.map((each, index) => (
+                    {settingsServices.map((each, index) => (
                         <li key={index} className="group hover:-translate-y-2 transition-transform duration-300 ease-out h-full">
                             <div className="h-full bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 transition-shadow duration-300 overflow-hidden">
                                 <ThreeElementCard title={each.title} description={each.desc || each.description || ''}>
                                     <div className="text-[#4038C9] group-hover:scale-110 transition-transform duration-300">
-                                        {settingsServices.length > 0 ? defaultLegalIcon : ServicesIcons[index]}
+                                        {defaultLegalIcon}
                                     </div>
                                 </ThreeElementCard>
                             </div>

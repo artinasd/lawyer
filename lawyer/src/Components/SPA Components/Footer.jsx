@@ -16,7 +16,7 @@ function Footer() {
                     <div className="flex flex-col">
                         <h2 className='text-white text-2xl font-bold mb-4 flex items-center gap-2'>
                             <div className="w-2 h-8 bg-[#FFCA0C] rounded-full"></div>
-                            محمد حقوقی
+                            دکتر ابراهیم چالاکی
                         </h2>
                         <p className="text-gray-400 leading-relaxed text-sm text-justify">
                             ارائه خدمات تخصصی وکالت و مشاوره حقوقی با تکیه بر سال‌ها تجربه موفق در محاکم دادگستری. تعهد، صداقت و پیگیری مستمر، اصول اساسی کار ماست.

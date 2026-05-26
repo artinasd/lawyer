@@ -45,6 +45,20 @@ db.exec(`
         )
 `);
 
+// NEW: Messages Table for the Contact Form
+db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        subject TEXT,
+        content TEXT NOT NULL,
+        is_read INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+`);
+
 try {
     db.prepare("INSERT OR IGNORE INTO site_settings (id) VALUES (1)").run();
 } catch (error) {
@@ -64,7 +78,7 @@ try {
 } catch (error) { /* Columns exist */ }
 
 try {
-    // NEW: Migration for header_bio
+    // Migration for header_bio
     db.prepare("ALTER TABLE site_settings ADD COLUMN header_bio TEXT DEFAULT ''").run();
     console.log("Migration: Added header_bio to site_settings.");
 } catch (error) { /* Column exists */ }

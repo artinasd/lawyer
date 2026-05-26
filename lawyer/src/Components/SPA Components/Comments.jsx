@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import FourElementCard from "../Costume UI Components/FourElementCard.jsx";
 import fallbackPic from '../../assets/person1.jpg';
-import { CommentsData } from "../HardCodedData/CommentsData.js";
 
 function Comments() {
     const [menuState, setMenuState] = useState(0);
@@ -24,30 +23,29 @@ function Comments() {
             });
     }, []);
 
-    const activeComments = settingsComments.length > 0 ? settingsComments : CommentsData;
-
     useEffect(() => {
-        if (menuState >= activeComments.length) {
+        if (settingsComments.length === 0) return;
+        if (menuState >= settingsComments.length) {
             setMenuState(0);
         }
-    }, [activeComments, menuState]);
+    }, [settingsComments, menuState]);
 
     useEffect(() => {
-        if (activeComments.length <= 1) return;
+        if (settingsComments.length <= 1) return;
 
         const timer = setInterval(() => {
-            handleSlideChange((prev) => (prev < activeComments.length - 1 ? prev + 1 : 0));
+            handleSlideChange((prev) => (prev < settingsComments.length - 1 ? prev + 1 : 0));
         }, 5000);
 
         return () => clearInterval(timer);
-    }, [activeComments.length]);
+    }, [settingsComments.length]);
 
     const handleSlideChange = (newIndex) => {
         setIsFading(true);
         setTimeout(() => {
             setMenuState(prev => {
                 const nextVal = typeof newIndex === 'function' ? newIndex(prev) : newIndex;
-                return nextVal < activeComments.length ? nextVal : 0;
+                return nextVal < settingsComments.length ? nextVal : 0;
             });
             setIsFading(false);
         }, 300);
@@ -55,8 +53,11 @@ function Comments() {
 
     if (loading) return null;
 
-    const safeMenuState = menuState < activeComments.length ? menuState : 0;
-    const currentComment = activeComments[safeMenuState] || {};
+    // Hide component if there are no comments saved in the database
+    if (settingsComments.length === 0) return null;
+
+    const safeMenuState = menuState < settingsComments.length ? menuState : 0;
+    const currentComment = settingsComments[safeMenuState] || {};
 
     // SMART AVATAR SELECTOR
     const getAvatarPic = (comment) => {
@@ -107,9 +108,9 @@ function Comments() {
                     </div>
                 </div>
 
-                {activeComments.length > 1 && (
+                {settingsComments.length > 1 && (
                     <div className='flex flex-row items-center gap-3 mt-10'>
-                        {activeComments.map((_, index) => (
+                        {settingsComments.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleSlideChange(index)}

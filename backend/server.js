@@ -4,33 +4,32 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const db = require('./db');
+const db = require('./db'); // Now exports the MySQL promise pool
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.JWT_SECRET || "fallback_secret_do_not_use_in_prod";
 
-// Secure CORS: Only allow connections from your frontend URL
 const corsOptions = {
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 
-// Secure Body Parser: Increased to 10mb to allow Base64 image saving in Settings
+// 20mb limit to handle Base64 images
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // 1. LOGIN
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const settings = db.prepare("SELECT admin_username, admin_password FROM site_settings WHERE id = 1").get();
+        const [rows] = await db.query("SELECT admin_username, admin_password FROM site_settings WHERE id = 1");
+        const settings = rows[0];
         const validUser = settings ? settings.admin_username : "admin";
 
-        // Use bcrypt to securely verify the password
         if (username === validUser && settings && settings.admin_password) {
-            const passwordMatch = bcrypt.compareSync(password, settings.admin_password);
+            const passwordMatch = await bcrypt.compare(password, settings.admin_password);
 
             if (passwordMatch) {
                 const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '4h' });
@@ -59,9 +58,9 @@ const authenticate = (req, res, next) => {
 };
 
 // 3. GET ALL POSTS
-app.get('/api/posts', (req, res) => {
+app.get('/api/posts', async (req, res) => {
     try {
-        const posts = db.prepare("SELECT * FROM posts ORDER BY id DESC").all();
+        const [posts] = await db.query("SELECT * FROM posts ORDER BY id DESC");
         res.json(posts);
     } catch (error) {
         console.error(error);
@@ -70,11 +69,13 @@ app.get('/api/posts', (req, res) => {
 });
 
 // 4. ADD POST
-app.post('/api/posts', authenticate, (req, res) => {
+app.post('/api/posts', authenticate, async (req, res) => {
     const { title, excerpt, content, author, image } = req.body;
     try {
-        const stmt = db.prepare("INSERT INTO posts (title, excerpt, content, author, image) VALUES (?, ?, ?, ?, ?)");
-        stmt.run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null);
+        await db.execute(
+            "INSERT INTO posts (title, excerpt, content, author, image) VALUES (?, ?, ?, ?, ?)",
+            [title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null]
+        );
         res.status(201).json({ message: "Success" });
     } catch (error) {
         console.error(error);
@@ -83,9 +84,12 @@ app.post('/api/posts', authenticate, (req, res) => {
 });
 
 // 5. GET APPROVED COMMENTS
-app.get('/api/posts/:id/comments', (req, res) => {
+app.get('/api/posts/:id/comments', async (req, res) => {
     try {
-        const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(req.params.id);
+        const [comments] = await db.execute(
+            "SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC",
+            [req.params.id]
+        );
         res.json(comments);
     } catch (error) {
         console.error(error);
@@ -94,11 +98,13 @@ app.get('/api/posts/:id/comments', (req, res) => {
 });
 
 // 6. ADD COMMENT
-app.post('/api/posts/:id/comments', (req, res) => {
+app.post('/api/posts/:id/comments', async (req, res) => {
     const { name, content } = req.body;
     try {
-        const stmt = db.prepare("INSERT INTO comments (post_id, name, content) VALUES (?, ?, ?)");
-        stmt.run(req.params.id, name.trim(), content.trim());
+        await db.execute(
+            "INSERT INTO comments (post_id, name, content) VALUES (?, ?, ?)",
+            [req.params.id, name.trim(), content.trim()]
+        );
         res.status(201).json({ message: "Comment added successfully" });
     } catch (error) {
         console.error(error);
@@ -107,9 +113,13 @@ app.post('/api/posts/:id/comments', (req, res) => {
 });
 
 // 7. GET ALL COMMENTS
-app.get('/api/admin/comments', authenticate, (req, res) => {
+app.get('/api/admin/comments', authenticate, async (req, res) => {
     try {
-        const comments = db.prepare(`SELECT c.*, p.title as post_title FROM comments c JOIN posts p ON c.post_id = p.id ORDER BY c.created_at DESC`).all();
+        const [comments] = await db.query(`
+            SELECT c.*, p.title as post_title 
+            FROM comments c JOIN posts p ON c.post_id = p.id 
+            ORDER BY c.created_at DESC
+        `);
         res.json(comments);
     } catch (error) {
         console.error(error);
@@ -118,10 +128,12 @@ app.get('/api/admin/comments', authenticate, (req, res) => {
 });
 
 // 8. UPDATE COMMENT STATUS
-app.put('/api/admin/comments/:id', authenticate, (req, res) => {
+app.put('/api/admin/comments/:id', authenticate, async (req, res) => {
     try {
-        const stmt = db.prepare("UPDATE comments SET status = ?, reply = ? WHERE id = ?");
-        stmt.run(req.body.status, req.body.reply || null, req.params.id);
+        await db.execute(
+            "UPDATE comments SET status = ?, reply = ? WHERE id = ?",
+            [req.body.status, req.body.reply || null, req.params.id]
+        );
         res.json({ message: "Comment updated" });
     } catch (error) {
         console.error(error);
@@ -130,9 +142,9 @@ app.put('/api/admin/comments/:id', authenticate, (req, res) => {
 });
 
 // 9. DELETE POST
-app.delete('/api/posts/:id', authenticate, (req, res) => {
+app.delete('/api/posts/:id', authenticate, async (req, res) => {
     try {
-        db.prepare("DELETE FROM posts WHERE id = ?").run(req.params.id);
+        await db.execute("DELETE FROM posts WHERE id = ?", [req.params.id]);
         res.json({ message: "Deleted" });
     } catch (error) {
         console.error(error);
@@ -141,11 +153,13 @@ app.delete('/api/posts/:id', authenticate, (req, res) => {
 });
 
 // 10. EDIT POST
-app.put('/api/posts/:id', authenticate, (req, res) => {
+app.put('/api/posts/:id', authenticate, async (req, res) => {
     const { title, excerpt, content, author, image } = req.body;
     try {
-        db.prepare("UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, image = ? WHERE id = ?")
-            .run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null, req.params.id);
+        await db.execute(
+            "UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, image = ? WHERE id = ?",
+            [title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null, req.params.id]
+        );
         res.json({ message: "Updated" });
     } catch (error) {
         console.error(error);
@@ -154,11 +168,15 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
 });
 
 // 11. GET GLOBAL SETTINGS
-app.get('/api/settings', (req, res) => {
+app.get('/api/settings', async (req, res) => {
     try {
-        // Excluded admin_password from the returned query
-        const settings = db.prepare("SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
-        res.json(settings);
+        const [rows] = await db.query(`
+            SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, 
+                   author_name, author_bio, author_image, services_json, 
+                   testimonials_json, admin_username 
+            FROM site_settings WHERE id = 1
+        `);
+        res.json(rows[0] || {});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error fetching settings" });
@@ -166,27 +184,20 @@ app.get('/api/settings', (req, res) => {
 });
 
 // 12. UPDATE GLOBAL SETTINGS
-app.put('/api/settings', authenticate, (req, res) => {
+app.put('/api/settings', authenticate, async (req, res) => {
     const { lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json } = req.body;
     try {
-        const stmt = db.prepare(`
+        await db.execute(`
             UPDATE site_settings
             SET lawyer_name = ?, header_bio = ?, lawyer_bio = ?, lawyer_image = ?,
                 author_name = ?, author_bio = ?, author_image = ?,
                 services_json = ?, testimonials_json = ?
             WHERE id = 1
-        `);
-        stmt.run(
-            lawyer_name || null,
-            header_bio || null,
-            lawyer_bio || null,
-            lawyer_image || null,
-            author_name || null,
-            author_bio || null,
-            author_image || null,
-            services_json || '[]',
-            testimonials_json || '[]'
-        );
+        `, [
+            lawyer_name || null, header_bio || null, lawyer_bio || null, lawyer_image || null,
+            author_name || null, author_bio || null, author_image || null,
+            services_json || '[]', testimonials_json || '[]'
+        ]);
         res.json({ message: "Settings saved successfully" });
     } catch (error) {
         console.error(error);
@@ -195,20 +206,22 @@ app.put('/api/settings', authenticate, (req, res) => {
 });
 
 // 13. UPDATE ADMIN CREDENTIALS
-app.put('/api/settings/credentials', authenticate, (req, res) => {
+app.put('/api/settings/credentials', authenticate, async (req, res) => {
     const { currentPassword, newUsername, newPassword } = req.body;
     try {
-        const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
+        const [rows] = await db.query("SELECT admin_password FROM site_settings WHERE id = 1");
+        const settings = rows[0];
 
-        const passwordMatch = bcrypt.compareSync(currentPassword, settings.admin_password);
+        const passwordMatch = await bcrypt.compare(currentPassword, settings.admin_password);
         if (!passwordMatch) {
             return res.status(401).json({ message: "رمز عبور فعلی اشتباه است." });
         }
 
-        // Hash new password before saving
-        const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
-        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1")
-            .run(newUsername.trim(), hashedNewPassword);
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        await db.execute(
+            "UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1",
+            [newUsername.trim(), hashedNewPassword]
+        );
 
         res.json({ message: "Credentials updated successfully" });
     } catch (error) {
@@ -218,9 +231,9 @@ app.put('/api/settings/credentials', authenticate, (req, res) => {
 });
 
 // 14. GET ALL MESSAGES (Admin Only)
-app.get('/api/admin/messages', authenticate, (req, res) => {
+app.get('/api/admin/messages', authenticate, async (req, res) => {
     try {
-        const messages = db.prepare("SELECT * FROM messages ORDER BY created_at DESC").all();
+        const [messages] = await db.query("SELECT * FROM messages ORDER BY created_at DESC");
         res.json(messages);
     } catch (error) {
         console.error(error);
@@ -229,11 +242,13 @@ app.get('/api/admin/messages', authenticate, (req, res) => {
 });
 
 // 15. ADD NEW MESSAGE (Public)
-app.post('/api/messages', (req, res) => {
+app.post('/api/messages', async (req, res) => {
     const { name, email, phone, subject, content } = req.body;
     try {
-        const stmt = db.prepare("INSERT INTO messages (name, email, phone, subject, content) VALUES (?, ?, ?, ?, ?)");
-        stmt.run(name?.trim() || 'ناشناس', email?.trim() || null, phone?.trim() || null, subject?.trim() || null, content?.trim() || '');
+        await db.execute(
+            "INSERT INTO messages (name, email, phone, subject, content) VALUES (?, ?, ?, ?, ?)",
+            [name?.trim() || 'ناشناس', email?.trim() || null, phone?.trim() || null, subject?.trim() || null, content?.trim() || '']
+        );
         res.status(201).json({ message: "Message sent successfully" });
     } catch (error) {
         console.error(error);
@@ -242,9 +257,9 @@ app.post('/api/messages', (req, res) => {
 });
 
 // 16. DELETE MESSAGE (Admin Only)
-app.delete('/api/admin/messages/:id', authenticate, (req, res) => {
+app.delete('/api/admin/messages/:id', authenticate, async (req, res) => {
     try {
-        db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
+        await db.execute("DELETE FROM messages WHERE id = ?", [req.params.id]);
         res.json({ message: "Message deleted" });
     } catch (error) {
         console.error(error);
@@ -253,10 +268,10 @@ app.delete('/api/admin/messages/:id', authenticate, (req, res) => {
 });
 
 // 17. TOGGLE READ STATUS (Admin Only)
-app.put('/api/admin/messages/:id/read', authenticate, (req, res) => {
+app.put('/api/admin/messages/:id/read', authenticate, async (req, res) => {
     try {
         const { is_read } = req.body;
-        db.prepare("UPDATE messages SET is_read = ? WHERE id = ?").run(is_read ? 1 : 0, req.params.id);
+        await db.execute("UPDATE messages SET is_read = ? WHERE id = ?", [is_read ? 1 : 0, req.params.id]);
         res.json({ message: "Message status updated" });
     } catch (error) {
         console.error(error);

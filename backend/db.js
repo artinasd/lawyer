@@ -1,100 +1,93 @@
 // backend/db.js
-const Database = require('better-sqlite3');
+const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
-const db = new Database('lawyer.db', { verbose: console.log });
+require('dotenv').config();
 
-db.pragma('foreign_keys = ON');
+// Create a connection pool to handle multiple simultaneous connections safely
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || '127.0.0.1',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'lawyer_db',
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS posts (
-                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                         title TEXT NOT NULL,
-                                         excerpt TEXT,
-                                         content TEXT,
-                                         author TEXT,
-                                         image TEXT
-    )
-`);
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS posts (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                excerpt TEXT,
+                content LONGTEXT,
+                author VARCHAR(255),
+                image LONGTEXT
+            )
+        `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS comments (
-                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                            post_id INTEGER NOT NULL,
-                                            name TEXT NOT NULL,
-                                            content TEXT NOT NULL,
-                                            status TEXT DEFAULT 'pending',
-                                            reply TEXT,
-                                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-        )
-`);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS comments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                post_id INT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                content TEXT NOT NULL,
+                status VARCHAR(50) DEFAULT 'pending',
+                reply TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+            )
+        `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS site_settings (
-                                                 id INTEGER PRIMARY KEY CHECK (id = 1),
-        lawyer_name TEXT DEFAULT '',
-        header_bio TEXT DEFAULT '',
-        lawyer_bio TEXT DEFAULT '',
-        lawyer_image TEXT,
-        author_name TEXT DEFAULT '',
-        author_bio TEXT DEFAULT '',
-        author_image TEXT,
-        services_json TEXT DEFAULT '[]',
-        testimonials_json TEXT DEFAULT '[]',
-        admin_username TEXT DEFAULT 'admin',
-        admin_password TEXT
-        )
-`);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS site_settings (
+                id INT PRIMARY KEY CHECK (id = 1),
+                lawyer_name VARCHAR(255) DEFAULT '',
+                header_bio TEXT,
+                lawyer_bio TEXT,
+                lawyer_image LONGTEXT,
+                author_name VARCHAR(255) DEFAULT '',
+                author_bio TEXT,
+                author_image LONGTEXT,
+                services_json LONGTEXT,
+                testimonials_json LONGTEXT,
+                admin_username VARCHAR(255) DEFAULT 'admin',
+                admin_password VARCHAR(255)
+            )
+        `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        subject TEXT,
-        content TEXT NOT NULL,
-        is_read INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-`);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255),
+                phone VARCHAR(50),
+                subject VARCHAR(255),
+                content TEXT NOT NULL,
+                is_read TINYINT(1) DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
-// Initialization with hashed default password
-try {
-    const defaultHashedPassword = bcrypt.hashSync("password123", 10);
-    const stmt = db.prepare("INSERT OR IGNORE INTO site_settings (id, admin_username, admin_password) VALUES (1, 'admin', ?)");
-    stmt.run(defaultHashedPassword);
-} catch (error) {
-    console.error("Settings init error:", error);
-}
+        // Initialize default admin and settings if table is empty
+        const [rows] = await pool.query('SELECT * FROM site_settings WHERE id = 1');
+        if (rows.length === 0) {
+            const defaultHashedPassword = bcrypt.hashSync("password123", 10);
+            await pool.query(
+                `INSERT INTO site_settings (id, admin_username, admin_password, services_json, testimonials_json) 
+                 VALUES (1, 'admin', ?, '[]', '[]')`,
+                [defaultHashedPassword]
+            );
+            console.log("Database initialized with default settings and admin account.");
+        }
 
-// Auto-Migrations
-try {
-    db.prepare("ALTER TABLE site_settings ADD COLUMN admin_username TEXT DEFAULT 'admin'").run();
-    const defaultHashed = bcrypt.hashSync("password123", 10);
-    db.prepare(`ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT '${defaultHashed}'`).run();
-} catch (error) { /* Columns exist */ }
-
-try {
-    db.prepare("ALTER TABLE site_settings ADD COLUMN author_name TEXT DEFAULT ''").run();
-    db.prepare("ALTER TABLE site_settings ADD COLUMN author_bio TEXT DEFAULT ''").run();
-    db.prepare("ALTER TABLE site_settings ADD COLUMN author_image TEXT").run();
-} catch (error) { /* Columns exist */ }
-
-try {
-    db.prepare("ALTER TABLE site_settings ADD COLUMN header_bio TEXT DEFAULT ''").run();
-} catch (error) { /* Column exists */ }
-
-// IMPORTANT: Migration to hash plain-text passwords on existing databases
-try {
-    const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
-    if (settings && settings.admin_password && !settings.admin_password.startsWith('$2a$')) {
-        const hashed = bcrypt.hashSync(settings.admin_password, 10);
-        db.prepare("UPDATE site_settings SET admin_password = ? WHERE id = 1").run(hashed);
-        console.log("Migration: Hashed existing plain-text password for security.");
+    } catch (error) {
+        console.error("Database initialization error:", error);
     }
-} catch (error) {
-    console.error("Password hash migration error:", error);
 }
 
-module.exports = db;
+initDB();
+
+module.exports = pool;

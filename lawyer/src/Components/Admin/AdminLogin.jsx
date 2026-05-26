@@ -10,8 +10,7 @@ function AdminLogin() {
 
     const handleLogin = async () => {
         try {
-            // Updated URL to port 5000
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user, password: pass })

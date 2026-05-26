@@ -16,7 +16,7 @@ function AllPosts() {
 
     const fetchPosts = () => {
         setLoading(true);
-        fetch('http://localhost:5000/api/posts')
+        fetch(`${import.meta.env.VITE_API_URL}/api/posts`)
             .then(res => res.json())
             .then(data => {
                 setPosts(data);
@@ -39,7 +39,7 @@ function AllPosts() {
 
         const token = localStorage.getItem("token");
         try {
-            const response = await fetch(`http://localhost:5000/api/posts/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -82,7 +82,7 @@ function AllPosts() {
         const token = localStorage.getItem("token");
 
         try {
-            const response = await fetch(`http://localhost:5000/api/posts/${editingPostId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

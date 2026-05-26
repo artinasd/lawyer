@@ -22,13 +22,13 @@ export default function BlogPost() {
         const fetchPostData = async () => {
             try {
                 // Fetch Global Settings
-                const settingsRes = await fetch('http://localhost:5000/api/settings');
+                const settingsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
                 if (settingsRes.ok) {
                     setSiteSettings(await settingsRes.json());
                 }
 
                 // Fetch Posts
-                const response = await fetch('http://localhost:5000/api/posts');
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
                 if (response.ok) {
                     const allPosts = await response.json();
                     const currentPost = allPosts.find(p => p.id.toString() === postId);
@@ -41,7 +41,7 @@ export default function BlogPost() {
                 }
 
                 // Fetch APPROVED comments
-                const commentsResponse = await fetch(`http://localhost:5000/api/posts/${postId}/comments`);
+                const commentsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comments`);
                 if (commentsResponse.ok) {
                     const commentsData = await commentsResponse.json();
                     setComments(commentsData);
@@ -62,7 +62,7 @@ export default function BlogPost() {
 
         setIsSubmittingComment(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newComment)
@@ -93,7 +93,6 @@ export default function BlogPost() {
         return <div className="flex justify-center items-center min-h-screen rtl"><h2 className="text-2xl font-bold text-gray-700">مقاله مورد نظر یافت نشد.</h2></div>;
     }
 
-    // CHANGED: Now using author_name, author_image, and author_bio!
     const displayAuthorName = siteSettings?.author_name || post.author || 'تیم حقوقی';
     const displayAuthorPic = siteSettings?.author_image || fallbackAuthorPic;
     const displayAuthorBio = siteSettings?.author_bio || 'وکیل پایه یک دادگستری و مشاور حقوقی با سال‌ها تجربه در ارائه راهکارهای تخصصی در پرونده‌های کیفری، حقوقی و خانواده.';
@@ -161,7 +160,6 @@ export default function BlogPost() {
             </main>
 
             <aside className="md:w-1/4 flex flex-col gap-6">
-                {/* --- DYNAMIC AUTHOR PROFILE --- */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center transition-all hover:shadow-md">
                     <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-gray-50 shadow-sm">
                         <img src={displayAuthorPic} alt={displayAuthorName} className="w-full h-full object-cover" />

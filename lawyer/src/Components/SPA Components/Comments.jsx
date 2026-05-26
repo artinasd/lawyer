@@ -10,7 +10,7 @@ function Comments() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/settings')
+        fetch(`${import.meta.env.VITE_API_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 const parsed = JSON.parse(data?.testimonials_json || '[]');

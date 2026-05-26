@@ -1,5 +1,6 @@
 // backend/db.js
 const Database = require('better-sqlite3');
+const bcrypt = require('bcryptjs');
 const db = new Database('lawyer.db', { verbose: console.log });
 
 db.pragma('foreign_keys = ON');
@@ -41,11 +42,10 @@ db.exec(`
         services_json TEXT DEFAULT '[]',
         testimonials_json TEXT DEFAULT '[]',
         admin_username TEXT DEFAULT 'admin',
-        admin_password TEXT DEFAULT 'password123'
+        admin_password TEXT
         )
 `);
 
-// NEW: Messages Table for the Contact Form
 db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,8 +59,11 @@ db.exec(`
     )
 `);
 
+// Initialization with hashed default password
 try {
-    db.prepare("INSERT OR IGNORE INTO site_settings (id) VALUES (1)").run();
+    const defaultHashedPassword = bcrypt.hashSync("password123", 10);
+    const stmt = db.prepare("INSERT OR IGNORE INTO site_settings (id, admin_username, admin_password) VALUES (1, 'admin', ?)");
+    stmt.run(defaultHashedPassword);
 } catch (error) {
     console.error("Settings init error:", error);
 }
@@ -68,7 +71,8 @@ try {
 // Auto-Migrations
 try {
     db.prepare("ALTER TABLE site_settings ADD COLUMN admin_username TEXT DEFAULT 'admin'").run();
-    db.prepare("ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT 'password123'").run();
+    const defaultHashed = bcrypt.hashSync("password123", 10);
+    db.prepare(`ALTER TABLE site_settings ADD COLUMN admin_password TEXT DEFAULT '${defaultHashed}'`).run();
 } catch (error) { /* Columns exist */ }
 
 try {
@@ -78,9 +82,19 @@ try {
 } catch (error) { /* Columns exist */ }
 
 try {
-    // Migration for header_bio
     db.prepare("ALTER TABLE site_settings ADD COLUMN header_bio TEXT DEFAULT ''").run();
-    console.log("Migration: Added header_bio to site_settings.");
 } catch (error) { /* Column exists */ }
+
+// IMPORTANT: Migration to hash plain-text passwords on existing databases
+try {
+    const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
+    if (settings && settings.admin_password && !settings.admin_password.startsWith('$2a$')) {
+        const hashed = bcrypt.hashSync(settings.admin_password, 10);
+        db.prepare("UPDATE site_settings SET admin_password = ? WHERE id = 1").run(hashed);
+        console.log("Migration: Hashed existing plain-text password for security.");
+    }
+} catch (error) {
+    console.error("Password hash migration error:", error);
+}
 
 module.exports = db;

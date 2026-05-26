@@ -1,15 +1,25 @@
 // backend/server.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const db = require('./db');
 
 const app = express();
-const SECRET_KEY = "my_ultra_secure_secret";
+const PORT = process.env.PORT || 5000;
+const SECRET_KEY = process.env.JWT_SECRET || "fallback_secret_do_not_use_in_prod";
 
-app.use(cors());
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+// Secure CORS: Only allow connections from your frontend URL
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Secure Body Parser: Increased to 10mb to allow Base64 image saving in Settings
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // 1. LOGIN
 app.post('/api/login', (req, res) => {
@@ -17,15 +27,20 @@ app.post('/api/login', (req, res) => {
     try {
         const settings = db.prepare("SELECT admin_username, admin_password FROM site_settings WHERE id = 1").get();
         const validUser = settings ? settings.admin_username : "admin";
-        const validPass = settings ? settings.admin_password : "password123";
 
-        if (username === validUser && password === validPass) {
-            const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-            res.json({ token });
-        } else {
-            res.status(401).json({ message: "Invalid credentials" });
+        // Use bcrypt to securely verify the password
+        if (username === validUser && settings && settings.admin_password) {
+            const passwordMatch = bcrypt.compareSync(password, settings.admin_password);
+
+            if (passwordMatch) {
+                const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '4h' });
+                return res.json({ token });
+            }
         }
+
+        res.status(401).json({ message: "Invalid credentials" });
     } catch (error) {
+        console.error("Login Error:", error);
         res.status(500).json({ message: "Database error" });
     }
 });
@@ -38,6 +53,7 @@ const authenticate = (req, res, next) => {
     const bearerToken = token.split(' ')[1];
     jwt.verify(bearerToken, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(401).json({ message: "Unauthorized" });
+        req.user = decoded;
         next();
     });
 };
@@ -48,6 +64,7 @@ app.get('/api/posts', (req, res) => {
         const posts = db.prepare("SELECT * FROM posts ORDER BY id DESC").all();
         res.json(posts);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error fetching posts" });
     }
 });
@@ -60,6 +77,7 @@ app.post('/api/posts', authenticate, (req, res) => {
         stmt.run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null);
         res.status(201).json({ message: "Success" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Failed to save post." });
     }
 });
@@ -70,6 +88,7 @@ app.get('/api/posts/:id/comments', (req, res) => {
         const comments = db.prepare("SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at DESC").all(req.params.id);
         res.json(comments);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error fetching comments" });
     }
 });
@@ -82,6 +101,7 @@ app.post('/api/posts/:id/comments', (req, res) => {
         stmt.run(req.params.id, name.trim(), content.trim());
         res.status(201).json({ message: "Comment added successfully" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Failed to save comment." });
     }
 });
@@ -92,6 +112,7 @@ app.get('/api/admin/comments', authenticate, (req, res) => {
         const comments = db.prepare(`SELECT c.*, p.title as post_title FROM comments c JOIN posts p ON c.post_id = p.id ORDER BY c.created_at DESC`).all();
         res.json(comments);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error fetching admin comments" });
     }
 });
@@ -103,6 +124,7 @@ app.put('/api/admin/comments/:id', authenticate, (req, res) => {
         stmt.run(req.body.status, req.body.reply || null, req.params.id);
         res.json({ message: "Comment updated" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error updating comment" });
     }
 });
@@ -113,6 +135,7 @@ app.delete('/api/posts/:id', authenticate, (req, res) => {
         db.prepare("DELETE FROM posts WHERE id = ?").run(req.params.id);
         res.json({ message: "Deleted" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error deleting" });
     }
 });
@@ -125,6 +148,7 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
             .run(title.trim(), excerpt?.trim() || null, content.trim(), author?.trim() || null, image || null, req.params.id);
         res.json({ message: "Updated" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Update failed" });
     }
 });
@@ -132,9 +156,11 @@ app.put('/api/posts/:id', authenticate, (req, res) => {
 // 11. GET GLOBAL SETTINGS
 app.get('/api/settings', (req, res) => {
     try {
+        // Excluded admin_password from the returned query
         const settings = db.prepare("SELECT id, lawyer_name, header_bio, lawyer_bio, lawyer_image, author_name, author_bio, author_image, services_json, testimonials_json, admin_username FROM site_settings WHERE id = 1").get();
         res.json(settings);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error fetching settings" });
     }
 });
@@ -173,19 +199,23 @@ app.put('/api/settings/credentials', authenticate, (req, res) => {
     const { currentPassword, newUsername, newPassword } = req.body;
     try {
         const settings = db.prepare("SELECT admin_password FROM site_settings WHERE id = 1").get();
-        if (settings.admin_password !== currentPassword) {
+
+        const passwordMatch = bcrypt.compareSync(currentPassword, settings.admin_password);
+        if (!passwordMatch) {
             return res.status(401).json({ message: "رمز عبور فعلی اشتباه است." });
         }
-        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1").run(newUsername.trim(), newPassword);
+
+        // Hash new password before saving
+        const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
+        db.prepare("UPDATE site_settings SET admin_username = ?, admin_password = ? WHERE id = 1")
+            .run(newUsername.trim(), hashedNewPassword);
+
         res.json({ message: "Credentials updated successfully" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error updating credentials" });
     }
 });
-
-// ---------------------------
-// NEW: CONTACT MESSAGES
-// ---------------------------
 
 // 14. GET ALL MESSAGES (Admin Only)
 app.get('/api/admin/messages', authenticate, (req, res) => {
@@ -193,6 +223,7 @@ app.get('/api/admin/messages', authenticate, (req, res) => {
         const messages = db.prepare("SELECT * FROM messages ORDER BY created_at DESC").all();
         res.json(messages);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error fetching messages" });
     }
 });
@@ -205,6 +236,7 @@ app.post('/api/messages', (req, res) => {
         stmt.run(name?.trim() || 'ناشناس', email?.trim() || null, phone?.trim() || null, subject?.trim() || null, content?.trim() || '');
         res.status(201).json({ message: "Message sent successfully" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Failed to save message." });
     }
 });
@@ -215,6 +247,7 @@ app.delete('/api/admin/messages/:id', authenticate, (req, res) => {
         db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
         res.json({ message: "Message deleted" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error deleting message" });
     }
 });
@@ -226,8 +259,9 @@ app.put('/api/admin/messages/:id/read', authenticate, (req, res) => {
         db.prepare("UPDATE messages SET is_read = ? WHERE id = ?").run(is_read ? 1 : 0, req.params.id);
         res.json({ message: "Message status updated" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error updating message status" });
     }
 });
 
-app.listen(5000, () => console.log('Backend running on http://localhost:5000'));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

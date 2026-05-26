@@ -49,7 +49,7 @@ function AdminSettings() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/settings');
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data) {
@@ -95,7 +95,7 @@ function AdminSettings() {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/settings', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ function AdminSettings() {
         const token = localStorage.getItem("token");
 
         try {
-            const response = await fetch('http://localhost:5000/api/settings/credentials', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/settings/credentials`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(credentials)

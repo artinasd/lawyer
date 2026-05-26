@@ -1,3 +1,4 @@
+// lawyer/src/Components/SPA Components/AboutPage.jsx
 import React, { useState, useEffect } from 'react';
 import lawyerHand from '../../assets/lawyerHand.png';
 import TwoElementCard from "../Costume UI Components/TwoElementCard.jsx";
@@ -10,7 +11,7 @@ function AboutPage() {
 
     useEffect(() => {
         // Fetch CMS Settings
-        fetch('http://localhost:5000/api/settings')
+        fetch(`${import.meta.env.VITE_API_URL}/api/settings`)
             .then(res => res.json())
             .then(data => setSettings(data))
             .catch(err => console.error("Error fetching settings:", err));

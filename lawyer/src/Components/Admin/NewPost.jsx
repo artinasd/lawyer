@@ -30,7 +30,7 @@ function NewPost() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/posts', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

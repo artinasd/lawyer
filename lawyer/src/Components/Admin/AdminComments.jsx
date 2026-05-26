@@ -10,7 +10,7 @@ function AdminComments() {
     const fetchComments = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch('http://localhost:5000/api/admin/comments', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/comments`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -31,7 +31,7 @@ function AdminComments() {
     const handleUpdateComment = async (id, newStatus, currentReply) => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/admin/comments/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/comments/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

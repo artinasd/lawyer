@@ -7,7 +7,7 @@ function AdminMessages() {
 
     const fetchMessages = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/admin/messages", {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/messages`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             if (res.ok) {
@@ -28,7 +28,7 @@ function AdminMessages() {
     const handleDelete = async (id) => {
         if (!window.confirm("آیا از حذف این پیام مطمئن هستید؟")) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/messages/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/messages/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
@@ -40,7 +40,7 @@ function AdminMessages() {
 
     const toggleRead = async (id, currentStatus) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/messages/${id}/read`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/messages/${id}/read`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
